@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Mark Depot Attendance{% endblock %}
+{% block page_title %}<i class="fas fa-calendar-check me-2"></i>Mark Depot Attendance{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="depot" value="{{ selected_depot }}">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Date</label>
+                    <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Filter by Depot</label>
+                    <select name="depot_filter" class="form-select" onchange="window.location.href='?depot='+this.value">
+                        <option value="">All Depots</option>
+                        {% for d in depots %}
+                        <option value="{{ d.pk }}" {% if selected_depot == d.pk|stringformat:"d" %}selected{% endif %}>{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 text-end pt-4">
+                    <button type="button" class="btn btn-sm btn-outline-success me-1" onclick="markAll('present')">
+                        <i class="fas fa-check-double me-1"></i>All Present
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="markAll('absent')">
+                        <i class="fas fa-times me-1"></i>All Absent
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if employee_data %}
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>#</th><th>Employee</th><th>Depot</th><th>Salary</th><th>Status</th><th>Night Bill (৳)</th><th>Remarks</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in employee_data %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td class="fw-bold">{{ item.employee.name }}</td>
+                        <td><span class="badge bg-info">{{ item.employee.depot.name }}</span></td>
+                        <td>৳{{ item.employee.basic_salary|floatformat:0 }}</td>
+                        <td>
+                            <select name="status_{{ item.employee.id }}" class="form-select form-select-sm status-select" style="width: 130px;">
+                                <option value="present" {% if item.status == 'present' %}selected{% endif %}>✅ Present</option>
+                                <option value="absent" {% if item.status == 'absent' %}selected{% endif %}>❌ Absent</option>
+                                <option value="half_day" {% if item.status == 'half_day' %}selected{% endif %}>⏳ Half Day</option>
+                                <option value="leave" {% if item.status == 'leave' %}selected{% endif %}>🏖️ Leave</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="night_bill_{{ item.employee.id }}" value="{{ item.night_bill }}"
+                                   class="form-control form-control-sm" style="width: 120px;" step="1" min="0">
+                        </td>
+                        <td>
+                            <input type="text" name="remarks_{{ item.employee.id }}" class="form-control form-control-sm"
+                                   placeholder="Optional" value="{{ item.remarks }}">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-white">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Attendance</button>
+            <a href="{% url 'depot:attendance_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-users fa-3x text-muted mb-3 d-block"></i>
+            <p class="text-muted">No active depot employees found.</p>
+        </div>
+    </div>
+    {% endif %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markAll(status) {
+    document.querySelectorAll('.status-select').forEach(el => el.value = status);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Calculate Depot Salary{% endblock %}
+{% block page_title %}Calculate Depot Salary{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Calculate Monthly Depot Salary</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-1"></i> Depot Salary Formula:</h6>
+                    <ul class="mb-0 small">
+                        <li><strong>Daily Rate</strong> = Basic Salary ÷ 30</li>
+                        <li><strong>Day Salary</strong> = Daily Rate × Present Days</li>
+                        <li><strong>Earned</strong> = Day Salary + Night Bills</li>
+                        <li><strong>Net Salary</strong> = Earned + Bonus₁ + Bonus₂ − Deductions − Loan Installment</li>
+                        <li><strong>Balance</strong> = Net Salary − Payments Made</li>
+                    </ul>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Month</label>
+                            <select name="month" class="form-select">
+                                {% for val, name in months %}
+                                <option value="{{ val }}" {% if val == current_month %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Year</label>
+                            <input type="number" name="year" class="form-control" value="{{ current_year }}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-calculator me-1"></i> Calculate Salary for All Depot Employees
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

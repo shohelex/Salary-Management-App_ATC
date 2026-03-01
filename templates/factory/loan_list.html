@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Factory Loans{% endblock %}
+{% block page_title %}Factory Employee Loans{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        {% if show_all %}
+        <a href="{% url 'factory:loan_list' %}" class="btn btn-outline-primary btn-sm">Show Active Only</a>
+        {% else %}
+        <a href="{% url 'factory:loan_list' %}?show_all=1" class="btn btn-outline-secondary btn-sm">Show All (incl. Paid Off)</a>
+        {% endif %}
+        <span class="ms-3 badge bg-danger fs-6">Outstanding: ৳{{ total_outstanding|floatformat:0|intcomma }}</span>
+    </div>
+    <a href="{% url 'factory:loan_add' %}" class="btn btn-success btn-sm">
+        <i class="fas fa-plus me-1"></i> Add Loan
+    </a>
+</div>
+
+{% if loans %}
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover table-striped mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Employee</th>
+                    <th>Loan Date</th>
+                    <th>Loan Amount</th>
+                    <th>Monthly Installment</th>
+                    <th>Total Paid</th>
+                    <th>Remaining</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><a href="{% url 'factory:employee_detail' loan.employee.pk %}">{{ loan.employee.name }}</a></td>
+                    <td>{{ loan.loan_date|date:"d M Y" }}</td>
+                    <td>৳{{ loan.loan_amount|floatformat:0|intcomma }}</td>
+                    <td>৳{{ loan.monthly_installment|floatformat:0|intcomma }}</td>
+                    <td class="text-success">৳{{ loan.total_paid|floatformat:0|intcomma }}</td>
+                    <td class="fw-bold {% if loan.is_active %}text-danger{% else %}text-success{% endif %}">
+                        ৳{{ loan.remaining_balance|floatformat:0|intcomma }}
+                    </td>
+                    <td>
+                        {% if loan.is_active %}<span class="badge bg-warning">Active</span>
+                        {% else %}<span class="badge bg-success">Paid Off</span>{% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'factory:loan_edit' loan.pk %}" class="btn btn-outline-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% if loan.is_active %}
+                            <a href="{% url 'factory:loan_payment' loan.pk %}" class="btn btn-outline-success" title="Record Payment">
+                                <i class="fas fa-money-bill"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-hand-holding-usd fa-3x text-muted mb-3"></i>
+    <h5 class="text-muted">No {% if not show_all %}active {% endif %}loans found</h5>
+</div>
+{% endif %}
+
+{% for loan in loans %}
+{% if loan.remarks %}
+<!-- Tooltip would show remarks -->
+{% endif %}
+{% endfor %}
+{% endblock %}

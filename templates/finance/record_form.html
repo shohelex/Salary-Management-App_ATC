@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}
+<i class="fas fa-{% if record_type == 'sales' %}arrow-up text-success{% else %}arrow-down text-danger{% endif %} me-2"></i>{{ title }}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Date *</label>
+                            {{ form.date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Category *</label>
+                            {{ form.category }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Amount (৳) *</label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}<div class="text-danger small">{{ form.amount.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Description *</label>
+                            {{ form.description }}
+                        </div>
+                        <div class="col-12">
+                            <hr>
+                            <button type="submit" class="btn btn-{% if record_type == 'sales' %}success{% else %}danger{% endif %}">
+                                <i class="fas fa-save me-1"></i> Save
+                            </button>
+                            <a href="{% url 'finance:sales_cost' %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
