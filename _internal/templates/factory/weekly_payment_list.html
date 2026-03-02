@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Weekly Payments{% endblock %}
+{% block page_title %}Factory Weekly Payments{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <form class="d-flex gap-2" method="get">
+            <select name="month" class="form-select form-select-sm" style="width:150px;">
+                {% for val, name in months %}
+                <option value="{{ val }}" {% if val == selected_month %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" name="year" class="form-control form-control-sm" value="{{ selected_year }}" style="width:100px;">
+            <button class="btn btn-primary btn-sm"><i class="fas fa-filter me-1"></i>Filter</button>
+        </form>
+    </div>
+    <a href="{% url 'factory:weekly_payment_add' %}" class="btn btn-success btn-sm">
+        <i class="fas fa-plus me-1"></i> Record Weekly Payment
+    </a>
+</div>
+
+{% if payments %}
+<!-- Employee totals for the month -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header"><h6 class="mb-0">Monthly Summary by Employee</h6></div>
+    <div class="card-body p-0">
+        <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Employee</th><th class="text-end">Total Paid This Month</th></tr>
+            </thead>
+            <tbody>
+                {% for et in employee_totals %}
+                <tr>
+                    <td><a href="{% url 'factory:employee_detail' et.employee__id %}">{{ et.employee__name }}</a></td>
+                    <td class="text-end fw-bold text-success">৳{{ et.total|floatformat:0|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="table-dark">
+                <tr><td class="fw-bold">Grand Total</td><td class="text-end fw-bold">৳{{ grand_total|floatformat:0|intcomma }}</td></tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<!-- All payments detail -->
+<div class="card shadow-sm">
+    <div class="card-header"><h6 class="mb-0">All Payments</h6></div>
+    <div class="card-body p-0">
+        <table class="table table-hover table-striped mb-0">
+            <thead class="table-light">
+                <tr><th>#</th><th>Date</th><th>Employee</th><th>Amount</th><th>Remarks</th></tr>
+            </thead>
+            <tbody>
+                {% for p in payments %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ p.payment_date|date:"d M Y (D)" }}</td>
+                    <td>{{ p.employee.name }}</td>
+                    <td class="fw-bold text-success">৳{{ p.amount|floatformat:0|intcomma }}</td>
+                    <td>{{ p.remarks|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-hand-holding-usd fa-3x text-muted mb-3"></i>
+    <h5 class="text-muted">No weekly payments for this period</h5>
+    <a href="{% url 'factory:weekly_payment_add' %}" class="btn btn-success mt-2">Record First Payment</a>
+</div>
+{% endif %}
+{% endblock %}

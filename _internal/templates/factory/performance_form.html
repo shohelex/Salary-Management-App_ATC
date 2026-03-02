@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}
+<i class="fas fa-chart-line me-2"></i>{{ title }}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Employee *</label>
+                            {{ form.employee }}
+                            {% if form.employee.errors %}<div class="text-danger small">{{ form.employee.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Month *</label>
+                            {{ form.month }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Year *</label>
+                            {{ form.year }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Quality Score (1-10) *</label>
+                            {{ form.quality_score }}
+                            <small class="text-muted">Quality of work output</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Punctuality Score (1-10) *</label>
+                            {{ form.punctuality_score }}
+                            <small class="text-muted">Timeliness and regularity</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Productivity Score (1-10) *</label>
+                            {{ form.productivity_score }}
+                            <small class="text-muted">Amount of work done</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Teamwork Score (1-10) *</label>
+                            {{ form.teamwork_score }}
+                            <small class="text-muted">Cooperation with team</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Remarks</label>
+                            {{ form.remarks }}
+                        </div>
+                        <div class="col-12">
+                            <hr>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> Save
+                                </button>
+                                <a href="{% url 'factory:performance_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

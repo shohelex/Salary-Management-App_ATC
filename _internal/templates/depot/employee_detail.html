@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ employee.name }}{% endblock %}
+{% block page_title %}Depot Employee Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Left: Employee Info -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="avatar-circle mx-auto mb-3" style="width:80px;height:80px;background:#1cc88a;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                    <span class="text-white fs-2 fw-bold">{{ employee.name|first }}</span>
+                </div>
+                <h4 class="mb-1">{{ employee.name }}</h4>
+                <p class="text-muted mb-1">{{ employee.position }}</p>
+                <small class="text-muted">{{ employee.depot.name }}</small>
+                <div class="mt-2">
+                    {% if employee.is_active %}
+                    <span class="badge bg-success">Active</span>
+                    {% else %}
+                    <span class="badge bg-danger">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Basic Salary</span>
+                    <strong>৳{{ employee.basic_salary|floatformat:0|intcomma }}</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Daily Rate</span>
+                    <strong>৳{{ employee.daily_rate|floatformat:2 }}</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Phone</span>
+                    <span>{{ employee.phone|default:"-" }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Joined</span>
+                    <span>{{ employee.join_date|date:"d M Y" }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Outstanding Loan</span>
+                    {% if employee.total_loan_balance > 0 %}
+                    <span class="badge bg-danger fs-6">৳{{ employee.total_loan_balance|floatformat:0|intcomma }}</span>
+                    {% else %}
+                    <span class="badge bg-success">None</span>
+                    {% endif %}
+                </li>
+            </ul>
+            <div class="card-body">
+                <div class="d-flex gap-2">
+                    <a href="{% url 'depot:employee_edit' employee.pk %}" class="btn btn-outline-primary btn-sm flex-fill">
+                        <i class="fas fa-edit me-1"></i> Edit
+                    </a>
+                    <a href="{% url 'depot:employee_delete' employee.pk %}" class="btn btn-outline-danger btn-sm flex-fill">
+                        <i class="fas fa-trash me-1"></i> Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Tabs -->
+    <div class="col-lg-8">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#attendance">Attendance</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#salary">Salary History</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#loans">Loans</a></li>
+        </ul>
+        <div class="tab-content">
+            <!-- Attendance Tab -->
+            <div class="tab-pane fade show active p-3" id="attendance">
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>Date</th><th>Status</th><th>Night Bill</th><th>Remarks</th></tr></thead>
+                    <tbody>
+                    {% for att in recent_attendance %}
+                    <tr>
+                        <td>{{ att.date|date:"d M Y" }}</td>
+                        <td>
+                            {% if att.status == 'present' %}<span class="badge bg-success">Present</span>
+                            {% elif att.status == 'half_day' %}<span class="badge bg-warning">Half Day</span>
+                            {% elif att.status == 'absent' %}<span class="badge bg-danger">Absent</span>
+                            {% else %}<span class="badge bg-secondary">Leave</span>{% endif %}
+                        </td>
+                        <td>{% if att.night_bill > 0 %}৳{{ att.night_bill|floatformat:0|intcomma }}{% else %}-{% endif %}</td>
+                        <td>{{ att.remarks|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center text-muted">No attendance records</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Salary History Tab -->
+            <div class="tab-pane fade p-3" id="salary">
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>Period</th><th>Days</th><th>Night Bills</th><th>Earned</th><th>Net Salary</th><th>Paid</th><th>Balance</th></tr></thead>
+                    <tbody>
+                    {% for s in recent_salary %}
+                    <tr>
+                        <td>{{ s.month }}/{{ s.year }}</td>
+                        <td>{{ s.present_days }}</td>
+                        <td>৳{{ s.total_night_bills|floatformat:0|intcomma }}</td>
+                        <td>৳{{ s.calculated_salary|floatformat:0|intcomma }}</td>
+                        <td>৳{{ s.net_salary|floatformat:0|intcomma }}</td>
+                        <td>৳{{ s.payments_made|floatformat:0|intcomma }}</td>
+                        <td class="{% if s.balance < 0 %}text-danger{% else %}text-success{% endif %} fw-bold">
+                            ৳{{ s.balance|floatformat:0|intcomma }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center text-muted">No salary records</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Loans Tab -->
+            <div class="tab-pane fade p-3" id="loans">
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>Date</th><th>Loan Amount</th><th>Installment</th><th>Paid</th><th>Remaining</th><th>Status</th></tr></thead>
+                    <tbody>
+                    {% for loan in all_loans %}
+                    <tr>
+                        <td>{{ loan.loan_date|date:"d M Y" }}</td>
+                        <td>৳{{ loan.loan_amount|floatformat:0|intcomma }}</td>
+                        <td>৳{{ loan.monthly_installment|floatformat:0|intcomma }}</td>
+                        <td>৳{{ loan.total_paid|floatformat:0|intcomma }}</td>
+                        <td class="fw-bold {% if loan.is_active %}text-danger{% else %}text-success{% endif %}">
+                            ৳{{ loan.remaining_balance|floatformat:0|intcomma }}
+                        </td>
+                        <td>
+                            {% if loan.is_active %}<span class="badge bg-warning">Active</span>
+                            {% else %}<span class="badge bg-success">Paid Off</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted">No loans</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

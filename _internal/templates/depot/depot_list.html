@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Depots{% endblock %}
+{% block page_title %}
+<i class="fas fa-warehouse me-2"></i>Depots
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <span class="badge bg-info fs-6">{{ depots.count }} Depots</span>
+    <a href="{% url 'depot:depot_add' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Add Depot
+    </a>
+</div>
+
+<div class="row g-3">
+    {% for depot in depots %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="card-title mb-1">
+                            <i class="fas fa-warehouse text-primary me-2"></i>{{ depot.name }}
+                        </h5>
+                        <p class="text-muted mb-2"><i class="fas fa-map-marker-alt me-1"></i>{{ depot.location }}</p>
+                    </div>
+                    {% if depot.is_active %}
+                    <span class="badge bg-success">Active</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                </div>
+                {% if depot.phone %}
+                <p class="small mb-1"><i class="fas fa-phone me-1 text-muted"></i>{{ depot.phone }}</p>
+                {% endif %}
+                <p class="small mb-3"><i class="fas fa-users me-1 text-muted"></i>{{ depot.employee_count }} employees</p>
+                <div class="btn-group btn-group-sm w-100">
+                    <a href="{% url 'depot:depot_detail' depot.pk %}" class="btn btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i>View
+                    </a>
+                    <a href="{% url 'depot:depot_edit' depot.pk %}" class="btn btn-outline-warning">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </a>
+                    <a href="{% url 'depot:depot_delete' depot.pk %}" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-1"></i>Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-warehouse fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No depots found</p>
+                <a href="{% url 'depot:depot_add' %}" class="btn btn-primary btn-sm">Add First Depot</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

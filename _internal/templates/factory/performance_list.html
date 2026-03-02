@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Performance Records{% endblock %}
+{% block page_title %}
+<i class="fas fa-chart-line me-2"></i>Monthly Performance
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <form method="get" class="d-flex align-items-center gap-2">
+        <select name="month" class="form-select form-select-sm" style="width: 150px;" onchange="this.form.submit()">
+            {% for m_val, m_name in months %}
+            <option value="{{ m_val }}" {% if m_val == selected_month %}selected{% endif %}>{{ m_name }}</option>
+            {% endfor %}
+        </select>
+        <input type="number" name="year" value="{{ selected_year }}" class="form-control form-control-sm" style="width: 100px;" onchange="this.form.submit()">
+    </form>
+    <a href="{% url 'factory:performance_add' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Add Performance
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Employee</th>
+                        <th>Quality</th>
+                        <th>Punctuality</th>
+                        <th>Productivity</th>
+                        <th>Teamwork</th>
+                        <th>Overall</th>
+                        <th>Rating</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rec in records %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <a href="{% url 'factory:employee_detail' rec.employee.pk %}" class="text-decoration-none fw-bold">
+                                {{ rec.employee.name }}
+                            </a>
+                        </td>
+                        <td>
+                            <div class="progress" style="width: 80px; height: 20px;">
+                                <div class="progress-bar {% if rec.quality_score >= 8 %}bg-success{% elif rec.quality_score >= 5 %}bg-warning{% else %}bg-danger{% endif %}"
+                                     style="width: {{ rec.quality_score }}0%">{{ rec.quality_score }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="progress" style="width: 80px; height: 20px;">
+                                <div class="progress-bar {% if rec.punctuality_score >= 8 %}bg-success{% elif rec.punctuality_score >= 5 %}bg-warning{% else %}bg-danger{% endif %}"
+                                     style="width: {{ rec.punctuality_score }}0%">{{ rec.punctuality_score }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="progress" style="width: 80px; height: 20px;">
+                                <div class="progress-bar {% if rec.productivity_score >= 8 %}bg-success{% elif rec.productivity_score >= 5 %}bg-warning{% else %}bg-danger{% endif %}"
+                                     style="width: {{ rec.productivity_score }}0%">{{ rec.productivity_score }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="progress" style="width: 80px; height: 20px;">
+                                <div class="progress-bar {% if rec.teamwork_score >= 8 %}bg-success{% elif rec.teamwork_score >= 5 %}bg-warning{% else %}bg-danger{% endif %}"
+                                     style="width: {{ rec.teamwork_score }}0%">{{ rec.teamwork_score }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge fs-6 {% if rec.overall_score >= 8 %}bg-success{% elif rec.overall_score >= 5 %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ rec.overall_score }}/10
+                            </span>
+                        </td>
+                        <td>
+                            {% if rec.overall_score >= 9 %}
+                            <span class="text-success">⭐ Excellent</span>
+                            {% elif rec.overall_score >= 7 %}
+                            <span class="text-primary">👍 Good</span>
+                            {% elif rec.overall_score >= 5 %}
+                            <span class="text-warning">📊 Average</span>
+                            {% else %}
+                            <span class="text-danger">⚠️ Needs Improvement</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'factory:performance_edit' rec.pk %}" class="btn btn-outline-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{% url 'factory:performance_delete' rec.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this record?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <i class="fas fa-chart-line fa-3x mb-3 d-block"></i>
+                            <p>No performance records for this period</p>
+                            <a href="{% url 'factory:performance_add' %}" class="btn btn-primary btn-sm">Add Record</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

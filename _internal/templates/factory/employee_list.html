@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Factory Employees{% endblock %}
+{% block page_title %}
+<i class="fas fa-users me-2"></i>Factory Employees
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <span class="badge bg-primary fs-6">{{ employees.count }} Employees</span>
+        {% if show_inactive %}
+        <a href="?show_inactive=" class="btn btn-sm btn-outline-secondary ms-2">Hide Inactive</a>
+        {% else %}
+        <a href="?show_inactive=1" class="btn btn-sm btn-outline-secondary ms-2">Show Inactive</a>
+        {% endif %}
+    </div>
+    <a href="{% url 'factory:employee_add' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Add Employee
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Position</th>
+                        <th>Basic Salary</th>
+                        <th>Hourly Rate</th>
+                        <th>Phone</th>
+                        <th>Join Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <a href="{% url 'factory:employee_detail' emp.pk %}" class="fw-bold text-decoration-none">
+                                {{ emp.name }}
+                            </a>
+                        </td>
+                        <td>{{ emp.position }}</td>
+                        <td class="fw-bold">৳{{ emp.basic_salary|floatformat:0|intcomma }}</td>
+                        <td>৳{{ emp.hourly_rate|floatformat:2 }}/hr</td>
+                        <td>{{ emp.phone|default:"-" }}</td>
+                        <td>{{ emp.join_date|date:"d M Y" }}</td>
+                        <td>
+                            {% if emp.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'factory:employee_detail' emp.pk %}" class="btn btn-outline-primary" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'factory:employee_edit' emp.pk %}" class="btn btn-outline-warning" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'factory:employee_delete' emp.pk %}" class="btn btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3 d-block"></i>
+                            <p class="text-muted">No employees found</p>
+                            <a href="{% url 'factory:employee_add' %}" class="btn btn-primary btn-sm">Add First Employee</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

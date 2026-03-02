@@ -5,6 +5,14 @@
 {% block page_title %}<i class="fas fa-user-tie me-2"></i>Depot Employees{% endblock %}
 
 {% block content %}
+<!-- Print Header -->
+<div class="print-header">
+    <h1>Asian Trade Corporation</h1>
+    <p class="print-subtitle">Business Management System</p>
+    <p class="print-report-title">Depot Employee List</p>
+    <p class="print-date-info">Printed on: {% now "d F Y, h:i A" %}</p>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <form method="get" class="d-flex align-items-center gap-2">
         <label class="fw-bold">Depot:</label>
@@ -15,9 +23,14 @@
             {% endfor %}
         </select>
     </form>
-    <a href="{% url 'depot:employee_add' %}" class="btn btn-primary">
-        <i class="fas fa-plus me-1"></i> Add Employee
-    </a>
+    <div class="d-flex gap-2">
+        <button class="btn btn-print btn-sm" onclick="window.print()">
+            <i class="fas fa-print me-1"></i> Print
+        </button>
+        <a href="{% url 'depot:employee_add' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Add Employee
+        </a>
+    </div>
 </div>
 
 <div class="card shadow-sm">

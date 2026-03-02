@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Factory Salary Report{% endblock %}
+{% block page_title %}Factory Salary Report{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <form class="d-flex gap-2" method="get">
+            <select name="month" class="form-select form-select-sm" style="width:150px;">
+                {% for val, name in months %}
+                <option value="{{ val }}" {% if val == selected_month %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" name="year" class="form-control form-control-sm" value="{{ selected_year }}" style="width:100px;">
+            <button class="btn btn-primary btn-sm"><i class="fas fa-filter me-1"></i>Filter</button>
+        </form>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'factory:salary_calculate' %}" class="btn btn-success btn-sm">
+            <i class="fas fa-calculator me-1"></i> Calculate Salary
+        </a>
+        {% if salaries and not all_finalized %}
+        <form method="post" action="{% url 'factory:salary_finalize' %}" onsubmit="return confirm('Finalize all salaries for this month? This will process loan installments and create loans for negative balances.');">
+            {% csrf_token %}
+            <input type="hidden" name="month" value="{{ selected_month }}">
+            <input type="hidden" name="year" value="{{ selected_year }}">
+            <button type="submit" class="btn btn-warning btn-sm">
+                <i class="fas fa-check-double me-1"></i> Finalize Month
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+{% if salaries %}
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Employee</th>
+                        <th>Days</th>
+                        <th>Reg Hrs</th>
+                        <th>OT Hrs</th>
+                        <th>Earned</th>
+                        <th>Bonus</th>
+                        <th>Deductions</th>
+                        <th>Loan Ded.</th>
+                        <th>Net Salary</th>
+                        <th>Weekly Paid</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in salaries %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><a href="{% url 'factory:employee_detail' s.employee.pk %}">{{ s.employee.name }}</a></td>
+                        <td>{{ s.present_days }}</td>
+                        <td>{{ s.regular_hours|floatformat:1 }}</td>
+                        <td>{{ s.overtime_hours|floatformat:1 }}</td>
+                        <td>৳{{ s.calculated_salary|floatformat:0|intcomma }}</td>
+                        <td>৳{{ s.bonus_1|floatformat:0|intcomma }}{% if s.bonus_2 %} + {{ s.bonus_2|floatformat:0|intcomma }}{% endif %}</td>
+                        <td>৳{{ s.deductions|floatformat:0|intcomma }}</td>
+                        <td>{% if s.loan_deduction > 0 %}<span class="text-danger">৳{{ s.loan_deduction|floatformat:0|intcomma }}</span>{% else %}-{% endif %}</td>
+                        <td class="fw-bold">৳{{ s.net_salary|floatformat:0|intcomma }}</td>
+                        <td>৳{{ s.total_weekly_payments|floatformat:0|intcomma }}</td>
+                        <td class="fw-bold {% if s.balance < 0 %}text-danger{% else %}text-success{% endif %}">
+                            ৳{{ s.balance|floatformat:0|intcomma }}
+                        </td>
+                        <td>
+                            {% if s.is_finalized %}
+                            <span class="badge bg-success">Finalized</span>
+                            {% else %}
+                            <span class="badge bg-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'factory:salary_edit' s.pk %}" class="btn btn-outline-primary btn-sm" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light fw-bold">
+                    <tr>
+                        <td colspan="9" class="text-end">Totals:</td>
+                        <td>৳{{ total_salary|floatformat:0|intcomma }}</td>
+                        <td>৳{{ total_weekly|floatformat:0|intcomma }}</td>
+                        <td class="{% if total_balance < 0 %}text-danger{% else %}text-success{% endif %}">৳{{ total_balance|floatformat:0|intcomma }}</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-calculator fa-3x text-muted mb-3"></i>
+    <h5 class="text-muted">No salary records for this period</h5>
+    <a href="{% url 'factory:salary_calculate' %}" class="btn btn-primary mt-2">Calculate Salary</a>
+</div>
+{% endif %}
+{% endblock %}

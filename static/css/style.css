@@ -330,11 +330,276 @@ body {
 }
 
 /* ── Print styles ───────────────────────────────────── */
+
+/* Print header - hidden on screen, shown on print */
+.print-header {
+    display: none;
+}
+
+.print-footer {
+    display: none;
+}
+
+/* Print button styling */
+.btn-print {
+    background: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+.btn-print:hover {
+    background: #545b62;
+    border-color: #545b62;
+    color: #fff;
+}
+
 @media print {
-    .sidebar, .top-navbar, .btn, .sidebar-toggle {
+    /* Hide navigation and UI elements */
+    .sidebar, .top-navbar, .sidebar-toggle,
+    .no-print, .btn, form, .alert,
+    .btn-group, .card-header a, a.btn {
         display: none !important;
     }
+
+    /* Show print buttons need to be hidden */
+    .btn-print {
+        display: none !important;
+    }
+
+    /* Show print header */
+    .print-header {
+        display: block !important;
+        text-align: center;
+        border-bottom: 3px double #333;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .print-header h1 {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        color: #000;
+        letter-spacing: 1px;
+    }
+
+    .print-header .print-subtitle {
+        font-size: 12px;
+        color: #555;
+        margin: 2px 0;
+    }
+
+    .print-header .print-report-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-top: 10px;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .print-header .print-date-info {
+        font-size: 11px;
+        color: #666;
+        margin-top: 4px;
+    }
+
+    /* Show print footer */
+    .print-footer {
+        display: block !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 9px;
+        color: #999;
+        border-top: 1px solid #ddd;
+        padding-top: 5px;
+    }
+
+    /* Layout */
     .main-content {
         margin-left: 0 !important;
     }
+
+    body {
+        background: #fff !important;
+        font-size: 11px;
+        color: #000;
+    }
+
+    .container-fluid {
+        padding: 0 !important;
+    }
+
+    /* Cards */
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .card-header {
+        background: none !important;
+        color: #000 !important;
+        border-bottom: 2px solid #333 !important;
+        padding: 5px 0 !important;
+    }
+
+    .card-header h6 {
+        font-weight: 700;
+    }
+
+    .card-body {
+        padding: 0 !important;
+    }
+
+    /* Tables */
+    .table {
+        font-size: 10px;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .table th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        font-size: 9px;
+        padding: 4px 6px !important;
+        border: 1px solid #ccc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .table td {
+        padding: 3px 6px !important;
+        border: 1px solid #ddd !important;
+        font-size: 10px;
+    }
+
+    .table-dark th {
+        background: #e0e0e0 !important;
+        color: #000 !important;
+    }
+
+    .table tfoot td {
+        font-weight: 700;
+        border-top: 2px solid #333 !important;
+        background: #f8f8f8 !important;
+    }
+
+    /* Links as plain text */
+    a {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+
+    /* Badges */
+    .badge {
+        border: 1px solid #999 !important;
+        color: #000 !important;
+        background: #f0f0f0 !important;
+        font-size: 9px;
+        padding: 2px 5px !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Status badges with preserved meaning */
+    .badge.bg-success {
+        background: #d4edda !important;
+    }
+    .badge.bg-danger {
+        background: #f8d7da !important;
+    }
+    .badge.bg-warning {
+        background: #fff3cd !important;
+    }
+    .badge.bg-info {
+        background: #d1ecf1 !important;
+    }
+
+    /* Summary cards for print */
+    .stats-card, .card.bg-success, .card.bg-danger,
+    .card.bg-primary, .card.bg-dark, .card.bg-warning {
+        background: #fff !important;
+        color: #000 !important;
+        border: 1px solid #ccc !important;
+    }
+
+    .stats-card h3, .stats-card h6,
+    .card.bg-success h3, .card.bg-success h6,
+    .card.bg-danger h3, .card.bg-danger h6,
+    .card.bg-primary h3, .card.bg-primary h6,
+    .card.bg-dark h3, .card.bg-dark h6,
+    .card.bg-warning h3, .card.bg-warning h6 {
+        color: #000 !important;
+    }
+
+    .text-white {
+        color: #000 !important;
+    }
+
+    /* Text colors for print */
+    .text-success {
+        color: #000 !important;
+    }
+    .text-danger {
+        color: #000 !important;
+        font-weight: 700;
+    }
+    .fw-bold {
+        font-weight: 700;
+    }
+
+    /* Hide charts */
+    canvas {
+        display: none !important;
+    }
+
+    /* Page settings */
+    @page {
+        margin: 15mm 10mm;
+        size: landscape;
+    }
+
+    /* Prevent page breaks inside rows */
+    tr {
+        page-break-inside: avoid;
+    }
+
+    /* Actions column */
+    .col-actions, th:last-child, td:last-child {
+        display: none !important;
+    }
+
+    /* Re-show last column for tables that need it */
+    .print-show-last th:last-child,
+    .print-show-last td:last-child {
+        display: table-cell !important;
+    }
+
+    /* Signature area */
+    .print-signatures {
+        display: flex !important;
+        justify-content: space-between;
+        margin-top: 60px;
+        padding-top: 10px;
+    }
+
+    .print-signatures .sig-block {
+        text-align: center;
+        width: 200px;
+    }
+
+    .print-signatures .sig-line {
+        border-top: 1px solid #333;
+        margin-top: 50px;
+        padding-top: 5px;
+        font-size: 11px;
+    }
+}
+
+/* Print signatures - hidden on screen */
+.print-signatures {
+    display: none;
 }

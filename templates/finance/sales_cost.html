@@ -5,6 +5,14 @@
 {% block page_title %}<i class="fas fa-balance-scale me-2"></i>Sales vs Cost Comparison{% endblock %}
 
 {% block content %}
+<!-- Print Header -->
+<div class="print-header">
+    <h1>Asian Trade Corporation</h1>
+    <p class="print-subtitle">Business Management System</p>
+    <p class="print-report-title">Sales vs Cost Report</p>
+    <p class="print-date-info">Month: {{ selected_month }}/{{ selected_year }} | Printed: {% now "d F Y, h:i A" %}</p>
+</div>
+
 <!-- Filters -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <form method="get" class="d-flex align-items-center gap-2">
@@ -16,6 +24,9 @@
         <input type="number" name="year" value="{{ selected_year }}" class="form-control form-control-sm" style="width: 100px;" onchange="this.form.submit()">
     </form>
     <div class="d-flex gap-2">
+        <button class="btn btn-print btn-sm" onclick="window.print()">
+            <i class="fas fa-print me-1"></i> Print
+        </button>
         <a href="{% url 'finance:sales_add' %}" class="btn btn-success btn-sm">
             <i class="fas fa-plus me-1"></i>Add Sales
         </a>
