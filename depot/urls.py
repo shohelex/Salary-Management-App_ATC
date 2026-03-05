@@ -24,9 +24,11 @@ urlpatterns = [
     path('salary/calculate/', views.salary_calculate, name='salary_calculate'),
     path('salary/finalize/', views.salary_finalize, name='salary_finalize'),
     path('salary/<int:pk>/edit/', views.salary_edit, name='salary_edit'),
+    path('salary/<int:pk>/delete/', views.salary_delete, name='salary_delete'),
     # Loans
     path('loans/', views.loan_list, name='loan_list'),
     path('loans/add/', views.loan_add, name='loan_add'),
     path('loans/<int:pk>/edit/', views.loan_edit, name='loan_edit'),
+    path('loans/<int:pk>/delete/', views.loan_delete, name='loan_delete'),
     path('loans/<int:pk>/payment/', views.loan_payment, name='loan_payment'),
 ]

@@ -5,6 +5,14 @@
 {% block page_title %}Factory Salary Report{% endblock %}
 
 {% block content %}
+<!-- Print Header -->
+<div class="print-header">
+    <h1>Asian Trade Corporation</h1>
+    <p class="print-subtitle">Business Management System</p>
+    <p class="print-report-title">Factory Monthly Salary Sheet</p>
+    <p class="print-date-info">Month: {{ selected_month }}/{{ selected_year }} | Printed: {% now "d F Y, h:i A" %}</p>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <form class="d-flex gap-2" method="get">
@@ -18,6 +26,9 @@
         </form>
     </div>
     <div class="d-flex gap-2">
+        <button class="btn btn-print btn-sm" onclick="window.print()">
+            <i class="fas fa-print me-1"></i> Print
+        </button>
         <a href="{% url 'factory:salary_calculate' %}" class="btn btn-success btn-sm">
             <i class="fas fa-calculator me-1"></i> Calculate Salary
         </a>
@@ -80,9 +91,14 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{% url 'factory:salary_edit' s.pk %}" class="btn btn-outline-primary btn-sm" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'factory:salary_edit' s.pk %}" class="btn btn-outline-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'factory:salary_delete' s.pk %}" class="btn btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -107,4 +123,22 @@
     <a href="{% url 'factory:salary_calculate' %}" class="btn btn-primary mt-2">Calculate Salary</a>
 </div>
 {% endif %}
+
+<!-- Signature area for print -->
+<div class="print-signatures">
+    <div class="sig-block">
+        <div class="sig-line">Prepared By</div>
+    </div>
+    <div class="sig-block">
+        <div class="sig-line">Checked By</div>
+    </div>
+    <div class="sig-block">
+        <div class="sig-line">Approved By</div>
+    </div>
+</div>
+
+<!-- Print footer -->
+<div class="print-footer">
+    Asian Trade Corporation • Salary Report • Generated from ATC Management System
+</div>
 {% endblock %}

@@ -5,6 +5,14 @@
 {% block page_title %}Factory Weekly Payments{% endblock %}
 
 {% block content %}
+<!-- Print Header -->
+<div class="print-header">
+    <h1>Asian Trade Corporation</h1>
+    <p class="print-subtitle">Business Management System</p>
+    <p class="print-report-title">Factory Weekly Payments</p>
+    <p class="print-date-info">Period: {{ selected_month }}/{{ selected_year }} | Printed: {% now "d F Y, h:i A" %}</p>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <form class="d-flex gap-2" method="get">
@@ -17,9 +25,14 @@
             <button class="btn btn-primary btn-sm"><i class="fas fa-filter me-1"></i>Filter</button>
         </form>
     </div>
-    <a href="{% url 'factory:weekly_payment_add' %}" class="btn btn-success btn-sm">
-        <i class="fas fa-plus me-1"></i> Record Weekly Payment
-    </a>
+    <div class="d-flex gap-2">
+        <button class="btn btn-print btn-sm" onclick="window.print()">
+            <i class="fas fa-print me-1"></i> Print
+        </button>
+        <a href="{% url 'factory:weekly_payment_add' %}" class="btn btn-success btn-sm">
+            <i class="fas fa-plus me-1"></i> Record Weekly Payment
+        </a>
+    </div>
 </div>
 
 {% if payments %}
@@ -63,9 +76,14 @@
                     <td class="fw-bold text-success">৳{{ p.amount|floatformat:0|intcomma }}</td>
                     <td>{{ p.remarks|default:"-" }}</td>
                     <td class="no-print">
-                        <a href="{% url 'factory:weekly_payment_edit' p.pk %}" class="btn btn-outline-primary btn-sm" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </a>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'factory:weekly_payment_edit' p.pk %}" class="btn btn-outline-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'factory:weekly_payment_delete' p.pk %}" class="btn btn-outline-danger" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

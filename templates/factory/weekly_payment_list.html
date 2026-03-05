@@ -76,9 +76,14 @@
                     <td class="fw-bold text-success">৳{{ p.amount|floatformat:0|intcomma }}</td>
                     <td>{{ p.remarks|default:"-" }}</td>
                     <td class="no-print">
-                        <a href="{% url 'factory:weekly_payment_edit' p.pk %}" class="btn btn-outline-primary btn-sm" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </a>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'factory:weekly_payment_edit' p.pk %}" class="btn btn-outline-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'factory:weekly_payment_delete' p.pk %}" class="btn btn-outline-danger" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

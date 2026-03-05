@@ -18,10 +18,12 @@ urlpatterns = [
     path('weekly-payments/', views.weekly_payment_list, name='weekly_payment_list'),
     path('weekly-payments/add/', views.weekly_payment_add, name='weekly_payment_add'),
     path('weekly-payments/<int:pk>/edit/', views.weekly_payment_edit, name='weekly_payment_edit'),
+    path('weekly-payments/<int:pk>/delete/', views.weekly_payment_delete, name='weekly_payment_delete'),
     # Loans
     path('loans/', views.loan_list, name='loan_list'),
     path('loans/add/', views.loan_add, name='loan_add'),
     path('loans/<int:pk>/edit/', views.loan_edit, name='loan_edit'),
+    path('loans/<int:pk>/delete/', views.loan_delete, name='loan_delete'),
     path('loans/<int:pk>/payment/', views.loan_payment, name='loan_payment'),
     # Performance
     path('performance/', views.performance_list, name='performance_list'),
@@ -33,6 +35,7 @@ urlpatterns = [
     path('salary/calculate/', views.salary_calculate, name='salary_calculate'),
     path('salary/finalize/', views.salary_finalize, name='salary_finalize'),
     path('salary/<int:pk>/edit/', views.salary_edit, name='salary_edit'),
+    path('salary/<int:pk>/delete/', views.salary_delete, name='salary_delete'),
     # Increment
     path('increment/', views.increment_recommendation, name='increment_recommendation'),
 ]

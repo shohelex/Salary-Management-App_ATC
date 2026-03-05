@@ -275,6 +275,15 @@ def weekly_payment_edit(request, pk):
     })
 
 
+def weekly_payment_delete(request, pk):
+    payment = get_object_or_404(WeeklyPayment, pk=pk)
+    if request.method == 'POST':
+        payment.delete()
+        messages.success(request, f'Payment for {payment.employee.name} deleted!')
+        return redirect('factory:weekly_payment_list')
+    return render(request, 'factory/weekly_payment_confirm_delete.html', {'payment': payment})
+
+
 # ─── Loan Views ─────────────────────────────────────────────
 
 def loan_list(request):
@@ -334,6 +343,15 @@ def loan_payment(request, pk):
             messages.success(request, f'Payment of ৳{amount:,.0f} recorded!')
         return redirect('factory:loan_list')
     return render(request, 'factory/loan_payment.html', {'loan': loan})
+
+
+def loan_delete(request, pk):
+    loan = get_object_or_404(FactoryLoan, pk=pk)
+    if request.method == 'POST':
+        loan.delete()
+        messages.success(request, f'Loan for {loan.employee.name} deleted!')
+        return redirect('factory:loan_list')
+    return render(request, 'factory/loan_confirm_delete.html', {'loan': loan})
 
 
 # ─── Performance Views ──────────────────────────────────────
@@ -465,6 +483,16 @@ def salary_edit(request, pk):
     return render(request, 'factory/salary_edit.html', {
         'form': form, 'salary': salary, 'bonus_suggestion': bonus_suggestion,
     })
+
+
+def salary_delete(request, pk):
+    salary = get_object_or_404(FactorySalary, pk=pk)
+    if request.method == 'POST':
+        month, year = salary.month, salary.year
+        salary.delete()
+        messages.success(request, f'Salary record for {salary.employee.name} deleted!')
+        return redirect(f'/factory/salary/?month={month}&year={year}')
+    return render(request, 'factory/salary_confirm_delete.html', {'salary': salary})
 
 
 def salary_finalize(request):

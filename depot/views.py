@@ -254,6 +254,15 @@ def loan_payment(request, pk):
     return render(request, 'depot/loan_payment.html', {'loan': loan})
 
 
+def loan_delete(request, pk):
+    loan = get_object_or_404(DepotLoan, pk=pk)
+    if request.method == 'POST':
+        loan.delete()
+        messages.success(request, f'Loan for {loan.employee.name} deleted!')
+        return redirect('depot:loan_list')
+    return render(request, 'depot/loan_confirm_delete.html', {'loan': loan})
+
+
 # ─── Depot Salary Views ─────────────────────────────────────
 
 def salary_report(request):
@@ -333,6 +342,16 @@ def salary_edit(request, pk):
     return render(request, 'depot/salary_edit.html', {
         'form': form, 'salary': salary, 'bonus_suggestion': bonus_suggestion,
     })
+
+
+def salary_delete(request, pk):
+    salary = get_object_or_404(DepotSalary, pk=pk)
+    if request.method == 'POST':
+        month, year = salary.month, salary.year
+        salary.delete()
+        messages.success(request, f'Salary record for {salary.employee.name} deleted!')
+        return redirect(f'/depot/salary/?month={month}&year={year}')
+    return render(request, 'depot/salary_confirm_delete.html', {'salary': salary})
 
 
 def salary_finalize(request):

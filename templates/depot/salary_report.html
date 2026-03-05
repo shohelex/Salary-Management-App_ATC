@@ -94,9 +94,14 @@
                             {% else %}<span class="badge bg-warning">Pending</span>{% endif %}
                         </td>
                         <td>
-                            <a href="{% url 'depot:salary_edit' s.pk %}" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-edit"></i>
-                            </a>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'depot:salary_edit' s.pk %}" class="btn btn-outline-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'depot:salary_delete' s.pk %}" class="btn btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}

@@ -72,6 +72,9 @@
                             <a href="{% url 'depot:loan_edit' loan.pk %}" class="btn btn-outline-primary" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            <a href="{% url 'depot:loan_delete' loan.pk %}" class="btn btn-outline-danger" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
                             {% if loan.is_active %}
                             <a href="{% url 'depot:loan_payment' loan.pk %}" class="btn btn-outline-success" title="Record Payment">
                                 <i class="fas fa-money-bill"></i>
