@@ -39,12 +39,13 @@ class DepotEmployeeForm(forms.ModelForm):
 class DepotSalaryEditForm(forms.ModelForm):
     class Meta:
         model = DepotSalary
-        fields = ['bonus_1', 'bonus_2', 'deductions', 'loan_deduction', 'payments_made']
+        fields = ['bonus', 'payments_made']
+        labels = {
+            'bonus': 'Bonus',
+            'payments_made': 'Payments Made',
+        }
         widgets = {
-            'bonus_1': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'bonus_2': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'deductions': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'loan_deduction': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'bonus': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'payments_made': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
 

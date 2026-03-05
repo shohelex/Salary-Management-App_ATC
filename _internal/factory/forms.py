@@ -1,5 +1,5 @@
 from django import forms
-from .models import FactoryEmployee, MonthlyPerformance, FactorySalary, FactoryLoan
+from .models import FactoryEmployee, MonthlyPerformance, FactorySalary, FactoryLoan, WeeklyPayment
 from datetime import date
 
 
@@ -42,15 +42,26 @@ class MonthlyPerformanceForm(forms.ModelForm):
         self.fields['employee'].queryset = FactoryEmployee.objects.filter(is_active=True)
 
 
+class WeeklyPaymentEditForm(forms.ModelForm):
+    class Meta:
+        model = WeeklyPayment
+        fields = ['payment_date', 'amount', 'remarks']
+        widgets = {
+            'payment_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '100', 'min': '0'}),
+            'remarks': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
+        }
+
+
 class SalaryEditForm(forms.ModelForm):
     class Meta:
         model = FactorySalary
-        fields = ['bonus_1', 'bonus_2', 'deductions', 'loan_deduction']
+        fields = ['bonus']
+        labels = {
+            'bonus': 'Bonus',
+        }
         widgets = {
-            'bonus_1': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'bonus_2': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'deductions': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'loan_deduction': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'bonus': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
 
 

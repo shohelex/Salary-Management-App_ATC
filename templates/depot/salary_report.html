@@ -65,7 +65,6 @@
                         <th>Night Bills</th>
                         <th>Earned</th>
                         <th>Bonus</th>
-                        <th>Deductions</th>
                         <th>Loan Ded.</th>
                         <th>Net Salary</th>
                         <th>Paid</th>
@@ -83,8 +82,7 @@
                         <td>{{ s.present_days }}</td>
                         <td>৳{{ s.total_night_bills|floatformat:0|intcomma }}</td>
                         <td>৳{{ s.calculated_salary|floatformat:0|intcomma }}</td>
-                        <td>৳{{ s.bonus_1|floatformat:0|intcomma }}{% if s.bonus_2 %} + {{ s.bonus_2|floatformat:0|intcomma }}{% endif %}</td>
-                        <td>৳{{ s.deductions|floatformat:0|intcomma }}</td>
+                        <td>৳{{ s.bonus|floatformat:0|intcomma }}</td>
                         <td>{% if s.loan_deduction > 0 %}<span class="text-danger">৳{{ s.loan_deduction|floatformat:0|intcomma }}</span>{% else %}-{% endif %}</td>
                         <td class="fw-bold">৳{{ s.net_salary|floatformat:0|intcomma }}</td>
                         <td>৳{{ s.payments_made|floatformat:0|intcomma }}</td>
@@ -105,7 +103,7 @@
                 </tbody>
                 <tfoot class="table-light fw-bold">
                     <tr>
-                        <td colspan="9" class="text-end">Totals:</td>
+                        <td colspan="8" class="text-end">Totals:</td>
                         <td>৳{{ total_salary|floatformat:0|intcomma }}</td>
                         <td></td>
                         <td>৳{{ total_balance|floatformat:0|intcomma }}</td>

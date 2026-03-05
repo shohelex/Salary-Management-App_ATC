@@ -17,6 +17,7 @@ urlpatterns = [
     # Weekly Payments
     path('weekly-payments/', views.weekly_payment_list, name='weekly_payment_list'),
     path('weekly-payments/add/', views.weekly_payment_add, name='weekly_payment_add'),
+    path('weekly-payments/<int:pk>/edit/', views.weekly_payment_edit, name='weekly_payment_edit'),
     # Loans
     path('loans/', views.loan_list, name='loan_list'),
     path('loans/add/', views.loan_add, name='loan_add'),

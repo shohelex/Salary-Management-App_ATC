@@ -138,9 +138,7 @@ class DepotSalary(models.Model):
     day_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_night_bills = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     calculated_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    bonus_1 = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    bonus_2 = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    bonus = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     loan_deduction = models.DecimalField(max_digits=10, decimal_places=2, default=0,
                                           help_text="Loan installment deducted this month")
     net_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -161,6 +159,6 @@ class DepotSalary(models.Model):
         self.daily_rate = self.basic_salary / Decimal('30')
         self.day_salary = self.daily_rate * Decimal(str(self.present_days))
         self.calculated_salary = self.day_salary + self.total_night_bills
-        self.net_salary = (self.calculated_salary + self.bonus_1 + self.bonus_2
-                          - self.deductions - self.loan_deduction)
+        self.net_salary = (self.calculated_salary + self.bonus
+                          - self.loan_deduction)
         self.balance = self.net_salary - self.payments_made

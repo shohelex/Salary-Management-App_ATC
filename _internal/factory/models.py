@@ -173,7 +173,7 @@ class FactorySalary(models.Model):
     2. Weekly advance payments given every Thursday
     3. Month-end calculation:
        calculated_salary = hourly_rate × (regular_hours + overtime_hours)
-       net_salary = calculated_salary + bonuses - deductions - loan_deduction
+       net_salary = calculated_salary + bonus - loan_deduction
        balance = net_salary - total_weekly_payments
        If balance < 0 → excess added to employee's loan
     """
@@ -187,9 +187,7 @@ class FactorySalary(models.Model):
     total_hours = models.DecimalField(max_digits=8, decimal_places=1, default=0)
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     calculated_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    bonus_1 = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    bonus_2 = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    bonus = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     loan_deduction = models.DecimalField(max_digits=10, decimal_places=2, default=0,
                                           help_text="Loan installment deducted this month")
     net_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -211,8 +209,8 @@ class FactorySalary(models.Model):
         self.hourly_rate = self.basic_salary / Decimal('240')
         self.total_hours = self.regular_hours + self.overtime_hours
         self.calculated_salary = self.hourly_rate * self.total_hours
-        self.net_salary = (self.calculated_salary + self.bonus_1 + self.bonus_2
-                          - self.deductions - self.loan_deduction)
+        self.net_salary = (self.calculated_salary + self.bonus
+                          - self.loan_deduction)
         total_wp = WeeklyPayment.objects.filter(
             employee=self.employee, month=self.month, year=self.year
         ).aggregate(total=models.Sum('amount'))['total'] or Decimal('0')

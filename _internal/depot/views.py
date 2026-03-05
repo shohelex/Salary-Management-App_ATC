@@ -319,6 +319,7 @@ def salary_calculate(request):
 
 def salary_edit(request, pk):
     salary = get_object_or_404(DepotSalary, pk=pk)
+    bonus_suggestion = salary.basic_salary / 2
     if request.method == 'POST':
         form = DepotSalaryEditForm(request.POST, instance=salary)
         if form.is_valid():
@@ -329,7 +330,9 @@ def salary_edit(request, pk):
             return redirect(f'/depot/salary/?month={salary.month}&year={salary.year}')
     else:
         form = DepotSalaryEditForm(instance=salary)
-    return render(request, 'depot/salary_edit.html', {'form': form, 'salary': salary})
+    return render(request, 'depot/salary_edit.html', {
+        'form': form, 'salary': salary, 'bonus_suggestion': bonus_suggestion,
+    })
 
 
 def salary_finalize(request):

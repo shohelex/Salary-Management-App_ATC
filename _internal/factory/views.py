@@ -8,7 +8,7 @@ import calendar
 from .models import (FactoryEmployee, FactoryAttendance, MonthlyPerformance,
                      FactorySalary, WeeklyPayment, FactoryLoan)
 from .forms import (FactoryEmployeeForm, MonthlyPerformanceForm,
-                    SalaryEditForm, FactoryLoanForm)
+                    SalaryEditForm, FactoryLoanForm, WeeklyPaymentEditForm)
 
 
 # ─── Employee Views ──────────────────────────────────────────
@@ -260,6 +260,21 @@ def weekly_payment_add(request):
     })
 
 
+def weekly_payment_edit(request, pk):
+    payment = get_object_or_404(WeeklyPayment, pk=pk)
+    if request.method == 'POST':
+        form = WeeklyPaymentEditForm(request.POST, instance=payment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Payment updated for {payment.employee.name}!')
+            return redirect('factory:weekly_payment_list')
+    else:
+        form = WeeklyPaymentEditForm(instance=payment)
+    return render(request, 'factory/weekly_payment_edit.html', {
+        'form': form, 'payment': payment,
+    })
+
+
 # ─── Loan Views ─────────────────────────────────────────────
 
 def loan_list(request):
@@ -436,6 +451,7 @@ def salary_calculate(request):
 
 def salary_edit(request, pk):
     salary = get_object_or_404(FactorySalary, pk=pk)
+    bonus_suggestion = salary.basic_salary / 2
     if request.method == 'POST':
         form = SalaryEditForm(request.POST, instance=salary)
         if form.is_valid():
@@ -446,7 +462,9 @@ def salary_edit(request, pk):
             return redirect(f'/factory/salary/?month={salary.month}&year={salary.year}')
     else:
         form = SalaryEditForm(instance=salary)
-    return render(request, 'factory/salary_edit.html', {'form': form, 'salary': salary})
+    return render(request, 'factory/salary_edit.html', {
+        'form': form, 'salary': salary, 'bonus_suggestion': bonus_suggestion,
+    })
 
 
 def salary_finalize(request):
