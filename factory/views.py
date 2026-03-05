@@ -8,7 +8,8 @@ import calendar
 from .models import (FactoryEmployee, FactoryAttendance, MonthlyPerformance,
                      FactorySalary, WeeklyPayment, FactoryLoan)
 from .forms import (FactoryEmployeeForm, MonthlyPerformanceForm,
-                    SalaryEditForm, FactoryLoanForm, WeeklyPaymentEditForm)
+                    SalaryEditForm, FactoryLoanForm, WeeklyPaymentEditForm,
+                    FactoryAttendanceEditForm, ApplyIncrementForm)
 
 
 # ─── Employee Views ──────────────────────────────────────────
@@ -176,18 +177,59 @@ def attendance_bulk(request):
     return redirect('factory:attendance_add')
 
 
+def attendance_edit(request, pk):
+    att = get_object_or_404(FactoryAttendance, pk=pk)
+    if request.method == 'POST':
+        form = FactoryAttendanceEditForm(request.POST, instance=att)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Attendance updated for {att.employee.name}!')
+            return redirect('factory:employee_detail', pk=att.employee.pk)
+    else:
+        form = FactoryAttendanceEditForm(instance=att)
+    return render(request, 'factory/attendance_edit.html', {
+        'form': form, 'attendance': att,
+    })
+
+
+def attendance_delete(request, pk):
+    att = get_object_or_404(FactoryAttendance, pk=pk)
+    if request.method == 'POST':
+        emp_pk = att.employee.pk
+        att.delete()
+        messages.success(request, f'Attendance record deleted!')
+        return redirect('factory:employee_detail', pk=emp_pk)
+    return render(request, 'factory/attendance_confirm_delete.html', {'attendance': att})
+
+
 # ─── Weekly Payment Views ───────────────────────────────────
 
 def weekly_payment_list(request):
     month = request.GET.get('month', str(date.today().month))
     year = request.GET.get('year', str(date.today().year))
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
     try:
         month, year = int(month), int(year)
     except ValueError:
         month, year = date.today().month, date.today().year
-    payments = WeeklyPayment.objects.filter(
-        month=month, year=year
-    ).select_related('employee').order_by('-payment_date', 'employee__name')
+
+    if start_date and end_date:
+        try:
+            start = date.fromisoformat(start_date)
+            end = date.fromisoformat(end_date)
+            payments = WeeklyPayment.objects.filter(
+                payment_date__gte=start, payment_date__lte=end
+            ).select_related('employee').order_by('-payment_date', 'employee__name')
+        except ValueError:
+            payments = WeeklyPayment.objects.filter(
+                month=month, year=year
+            ).select_related('employee').order_by('-payment_date', 'employee__name')
+    else:
+        payments = WeeklyPayment.objects.filter(
+            month=month, year=year
+        ).select_related('employee').order_by('-payment_date', 'employee__name')
+
     employee_totals = payments.values('employee__name', 'employee__id').annotate(
         total=Sum('amount')
     ).order_by('employee__name')
@@ -196,6 +238,7 @@ def weekly_payment_list(request):
         'payments': payments, 'employee_totals': employee_totals,
         'grand_total': grand_total,
         'selected_month': month, 'selected_year': year,
+        'start_date': start_date, 'end_date': end_date,
         'months': [(i, calendar.month_name[i]) for i in range(1, 13)],
     })
 
@@ -408,13 +451,30 @@ def performance_delete(request, pk):
 def salary_report(request):
     month = request.GET.get('month', str(date.today().month))
     year = request.GET.get('year', str(date.today().year))
+    start_month = request.GET.get('start_month', '')
+    end_month = request.GET.get('end_month', '')
     try:
         month, year = int(month), int(year)
     except ValueError:
         month, year = date.today().month, date.today().year
-    salaries = FactorySalary.objects.filter(
-        month=month, year=year
-    ).select_related('employee').order_by('employee__name')
+
+    if start_month and end_month:
+        try:
+            sm, sy = int(start_month.split('-')[1]), int(start_month.split('-')[0])
+            em, ey = int(end_month.split('-')[1]), int(end_month.split('-')[0])
+            salaries = FactorySalary.objects.filter(
+                year__gte=sy, year__lte=ey
+            ).select_related('employee').order_by('employee__name')
+            salaries = salaries.exclude(year=sy, month__lt=sm).exclude(year=ey, month__gt=em)
+        except (ValueError, IndexError):
+            salaries = FactorySalary.objects.filter(
+                month=month, year=year
+            ).select_related('employee').order_by('employee__name')
+    else:
+        salaries = FactorySalary.objects.filter(
+            month=month, year=year
+        ).select_related('employee').order_by('employee__name')
+
     total_net = salaries.aggregate(total=Sum('net_salary'))['total'] or Decimal('0')
     total_balance = salaries.aggregate(total=Sum('balance'))['total'] or Decimal('0')
     total_weekly = salaries.aggregate(total=Sum('total_weekly_payments'))['total'] or Decimal('0')
@@ -422,6 +482,7 @@ def salary_report(request):
     return render(request, 'factory/salary_report.html', {
         'salaries': salaries,
         'selected_month': month, 'selected_year': year,
+        'start_month': start_month, 'end_month': end_month,
         'months': [(i, calendar.month_name[i]) for i in range(1, 13)],
         'total_net': total_net, 'total_balance': total_balance,
         'total_weekly': total_weekly, 'all_finalized': all_finalized,
@@ -572,4 +633,53 @@ def increment_recommendation(request):
     recommendations.sort(key=lambda x: x['overall'], reverse=True)
     return render(request, 'factory/increment_recommendation.html', {
         'recommendations': recommendations, 'selected_year': year,
+    })
+
+
+def apply_increment(request, pk):
+    employee = get_object_or_404(FactoryEmployee, pk=pk)
+    year = request.GET.get('year', str(date.today().year))
+    try:
+        year = int(year)
+    except ValueError:
+        year = date.today().year
+
+    # Calculate suggestion from performance data
+    perfs = MonthlyPerformance.objects.filter(employee=employee, year=year)
+    suggested_pct = 0
+    overall = 0
+    category = 'No Data'
+    if perfs.exists():
+        aq = perfs.aggregate(a=Avg('quality_score'))['a'] or 0
+        ap = perfs.aggregate(a=Avg('punctuality_score'))['a'] or 0
+        apr = perfs.aggregate(a=Avg('productivity_score'))['a'] or 0
+        at = perfs.aggregate(a=Avg('teamwork_score'))['a'] or 0
+        overall = round((aq + ap + apr + at) / 4, 1)
+        if overall >= 9: category, suggested_pct = 'Excellent', 15
+        elif overall >= 7: category, suggested_pct = 'Good', 10
+        elif overall >= 5: category, suggested_pct = 'Average', 5
+        elif overall >= 3: category, suggested_pct = 'Below Average', 2
+        else: category, suggested_pct = 'Poor', 0
+
+    suggested_amount = employee.basic_salary * Decimal(str(suggested_pct)) / Decimal('100')
+    suggested_new_salary = employee.basic_salary + suggested_amount
+
+    if request.method == 'POST':
+        form = ApplyIncrementForm(request.POST)
+        if form.is_valid():
+            old_salary = employee.basic_salary
+            employee.basic_salary = form.cleaned_data['new_salary']
+            employee.save()
+            diff = employee.basic_salary - old_salary
+            messages.success(request, f'Salary updated for {employee.name}: ৳{old_salary:,.0f} → ৳{employee.basic_salary:,.0f} ({("+" if diff >= 0 else "")}{diff:,.0f})')
+            return redirect('factory:increment_recommendation')
+    else:
+        form = ApplyIncrementForm(initial={'new_salary': suggested_new_salary})
+
+    return render(request, 'factory/apply_increment.html', {
+        'employee': employee, 'form': form, 'year': year,
+        'overall': overall, 'category': category,
+        'suggested_pct': suggested_pct, 'suggested_amount': suggested_amount,
+        'suggested_new_salary': suggested_new_salary,
+        'months_evaluated': perfs.count() if perfs.exists() else 0,
     })

@@ -1,12 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.db.models import Sum, Q
+from django.db.models import Sum, Count, Q
 from datetime import date
 from decimal import Decimal
 import calendar
 
 from .models import Depot, DepotEmployee, DepotAttendance, DepotSalary, DepotLoan
-from .forms import DepotForm, DepotEmployeeForm, DepotSalaryEditForm, DepotLoanForm
+from .forms import DepotForm, DepotEmployeeForm, DepotSalaryEditForm, DepotLoanForm, DepotAttendanceEditForm, DepotApplyIncrementForm
 
 
 # ─── Depot Views ─────────────────────────────────────────────
@@ -193,6 +193,31 @@ def attendance_add(request):
     })
 
 
+def attendance_edit(request, pk):
+    att = get_object_or_404(DepotAttendance, pk=pk)
+    if request.method == 'POST':
+        form = DepotAttendanceEditForm(request.POST, instance=att)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Attendance updated for {att.employee.name}!')
+            return redirect('depot:employee_detail', pk=att.employee.pk)
+    else:
+        form = DepotAttendanceEditForm(instance=att)
+    return render(request, 'depot/attendance_edit.html', {
+        'form': form, 'attendance': att,
+    })
+
+
+def attendance_delete(request, pk):
+    att = get_object_or_404(DepotAttendance, pk=pk)
+    if request.method == 'POST':
+        emp_pk = att.employee.pk
+        att.delete()
+        messages.success(request, f'Attendance record deleted!')
+        return redirect('depot:employee_detail', pk=emp_pk)
+    return render(request, 'depot/attendance_confirm_delete.html', {'attendance': att})
+
+
 # ─── Depot Loan Views ───────────────────────────────────────
 
 def loan_list(request):
@@ -269,11 +294,26 @@ def salary_report(request):
     month = request.GET.get('month', str(date.today().month))
     year = request.GET.get('year', str(date.today().year))
     depot_id = request.GET.get('depot', '')
+    start_month = request.GET.get('start_month', '')
+    end_month = request.GET.get('end_month', '')
     try:
         month, year = int(month), int(year)
     except ValueError:
         month, year = date.today().month, date.today().year
-    salaries = DepotSalary.objects.filter(month=month, year=year).select_related('employee', 'employee__depot')
+
+    if start_month and end_month:
+        try:
+            sm, sy = int(start_month.split('-')[1]), int(start_month.split('-')[0])
+            em, ey = int(end_month.split('-')[1]), int(end_month.split('-')[0])
+            salaries = DepotSalary.objects.filter(
+                year__gte=sy, year__lte=ey
+            ).select_related('employee', 'employee__depot')
+            salaries = salaries.exclude(year=sy, month__lt=sm).exclude(year=ey, month__gt=em)
+        except (ValueError, IndexError):
+            salaries = DepotSalary.objects.filter(month=month, year=year).select_related('employee', 'employee__depot')
+    else:
+        salaries = DepotSalary.objects.filter(month=month, year=year).select_related('employee', 'employee__depot')
+
     if depot_id:
         salaries = salaries.filter(employee__depot_id=depot_id)
     total_salary = salaries.aggregate(total=Sum('net_salary'))['total'] or Decimal('0')
@@ -283,6 +323,7 @@ def salary_report(request):
     return render(request, 'depot/salary_report.html', {
         'salaries': salaries, 'selected_month': month, 'selected_year': year,
         'selected_depot': depot_id,
+        'start_month': start_month, 'end_month': end_month,
         'months': [(i, calendar.month_name[i]) for i in range(1, 13)],
         'total_salary': total_salary, 'total_balance': total_balance,
         'depots': depots, 'all_finalized': all_finalized,
@@ -388,3 +429,120 @@ def salary_finalize(request):
         messages.success(request, f'Finalized salary for {processed} depot employees!')
         return redirect(f'/depot/salary/?month={month}&year={year}')
     return redirect('depot:salary_report')
+
+
+# ─── Increment Views ────────────────────────────────────────
+
+def increment_recommendation(request):
+    year = request.GET.get('year', str(date.today().year))
+    try:
+        year = int(year)
+    except ValueError:
+        year = date.today().year
+
+    employees = DepotEmployee.objects.filter(is_active=True).select_related('depot')
+    recommendations = []
+
+    for emp in employees:
+        # Attendance stats for the year
+        attendance = DepotAttendance.objects.filter(employee=emp, date__year=year)
+        total_days = attendance.count()
+        present_days = attendance.filter(status__in=['present', 'half_day']).count()
+        absent_days = attendance.filter(status='absent').count()
+        attendance_rate = round((present_days / total_days * 100), 1) if total_days > 0 else 0
+
+        # Tenure
+        tenure_days = (date.today() - emp.join_date).days
+        tenure_years = round(tenure_days / 365, 1)
+
+        # Salary history - total earned last year
+        salary_records = DepotSalary.objects.filter(employee=emp, year=year)
+        months_worked = salary_records.count()
+
+        # Suggestion based on attendance rate and tenure
+        if total_days == 0:
+            category, suggested_pct, badge = 'No Data', 0, 'bg-light text-dark'
+        elif attendance_rate >= 95:
+            category, suggested_pct, badge = 'Excellent', 15, 'bg-success'
+        elif attendance_rate >= 85:
+            category, suggested_pct, badge = 'Good', 10, 'bg-primary'
+        elif attendance_rate >= 70:
+            category, suggested_pct, badge = 'Average', 5, 'bg-warning'
+        elif attendance_rate >= 50:
+            category, suggested_pct, badge = 'Below Average', 2, 'bg-secondary'
+        else:
+            category, suggested_pct, badge = 'Poor', 0, 'bg-danger'
+
+        inc_amt = emp.basic_salary * Decimal(str(suggested_pct)) / Decimal('100')
+
+        recommendations.append({
+            'employee': emp,
+            'total_days': total_days,
+            'present_days': present_days,
+            'absent_days': absent_days,
+            'attendance_rate': attendance_rate,
+            'tenure_years': tenure_years,
+            'months_worked': months_worked,
+            'category': category,
+            'badge_class': badge,
+            'increment_pct': suggested_pct,
+            'increment_amount': inc_amt,
+            'new_salary': emp.basic_salary + inc_amt,
+        })
+
+    recommendations.sort(key=lambda x: x['attendance_rate'], reverse=True)
+    return render(request, 'depot/increment_recommendation.html', {
+        'recommendations': recommendations, 'selected_year': year,
+    })
+
+
+def apply_increment(request, pk):
+    employee = get_object_or_404(DepotEmployee, pk=pk)
+    year = request.GET.get('year', str(date.today().year))
+    try:
+        year = int(year)
+    except ValueError:
+        year = date.today().year
+
+    # Attendance stats for suggestion
+    attendance = DepotAttendance.objects.filter(employee=employee, date__year=year)
+    total_days = attendance.count()
+    present_days = attendance.filter(status__in=['present', 'half_day']).count()
+    attendance_rate = round((present_days / total_days * 100), 1) if total_days > 0 else 0
+    tenure_years = round((date.today() - employee.join_date).days / 365, 1)
+
+    if total_days == 0:
+        category, suggested_pct = 'No Data', 0
+    elif attendance_rate >= 95:
+        category, suggested_pct = 'Excellent', 15
+    elif attendance_rate >= 85:
+        category, suggested_pct = 'Good', 10
+    elif attendance_rate >= 70:
+        category, suggested_pct = 'Average', 5
+    elif attendance_rate >= 50:
+        category, suggested_pct = 'Below Average', 2
+    else:
+        category, suggested_pct = 'Poor', 0
+
+    suggested_amount = employee.basic_salary * Decimal(str(suggested_pct)) / Decimal('100')
+    suggested_new_salary = employee.basic_salary + suggested_amount
+
+    if request.method == 'POST':
+        form = DepotApplyIncrementForm(request.POST)
+        if form.is_valid():
+            old_salary = employee.basic_salary
+            employee.basic_salary = form.cleaned_data['new_salary']
+            employee.save()
+            diff = employee.basic_salary - old_salary
+            messages.success(request, f'Salary updated for {employee.name}: ৳{old_salary:,.0f} → ৳{employee.basic_salary:,.0f} ({("+" if diff >= 0 else "")}{diff:,.0f})')
+            return redirect('depot:increment_recommendation')
+    else:
+        form = DepotApplyIncrementForm(initial={'new_salary': suggested_new_salary})
+
+    return render(request, 'depot/apply_increment.html', {
+        'employee': employee, 'form': form, 'year': year,
+        'attendance_rate': attendance_rate, 'present_days': present_days,
+        'total_days': total_days, 'tenure_years': tenure_years,
+        'category': category, 'suggested_pct': suggested_pct,
+        'suggested_amount': suggested_amount, 'suggested_new_salary': suggested_new_salary,
+    })

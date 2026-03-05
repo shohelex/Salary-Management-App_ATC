@@ -13,6 +13,8 @@ urlpatterns = [
     # Attendance
     path('attendance/', views.attendance_list, name='attendance_list'),
     path('attendance/add/', views.attendance_add, name='attendance_add'),
+    path('attendance/<int:pk>/edit/', views.attendance_edit, name='attendance_edit'),
+    path('attendance/<int:pk>/delete/', views.attendance_delete, name='attendance_delete'),
     path('attendance/bulk/', views.attendance_bulk, name='attendance_bulk'),
     # Weekly Payments
     path('weekly-payments/', views.weekly_payment_list, name='weekly_payment_list'),
@@ -38,4 +40,5 @@ urlpatterns = [
     path('salary/<int:pk>/delete/', views.salary_delete, name='salary_delete'),
     # Increment
     path('increment/', views.increment_recommendation, name='increment_recommendation'),
+    path('increment/<int:pk>/apply/', views.apply_increment, name='apply_increment'),
 ]

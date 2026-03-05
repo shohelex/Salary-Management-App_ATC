@@ -1,6 +1,7 @@
 from django import forms
-from .models import FactoryEmployee, MonthlyPerformance, FactorySalary, FactoryLoan, WeeklyPayment
+from .models import FactoryEmployee, FactoryAttendance, MonthlyPerformance, FactorySalary, FactoryLoan, WeeklyPayment
 from datetime import date
+from decimal import Decimal
 
 
 class FactoryEmployeeForm(forms.ModelForm):
@@ -42,6 +43,18 @@ class MonthlyPerformanceForm(forms.ModelForm):
         self.fields['employee'].queryset = FactoryEmployee.objects.filter(is_active=True)
 
 
+class ApplyIncrementForm(forms.Form):
+    new_salary = forms.DecimalField(
+        max_digits=10, decimal_places=2,
+        min_value=Decimal('0'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '100'}),
+        label='New Basic Salary'
+    )
+    remarks = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Reason for increment'}),
+    )
+
 class WeeklyPaymentEditForm(forms.ModelForm):
     class Meta:
         model = WeeklyPayment
@@ -49,6 +62,19 @@ class WeeklyPaymentEditForm(forms.ModelForm):
         widgets = {
             'payment_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '100', 'min': '0'}),
+            'remarks': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
+        }
+
+
+class FactoryAttendanceEditForm(forms.ModelForm):
+    class Meta:
+        model = FactoryAttendance
+        fields = ['date', 'status', 'working_hours', 'overtime_hours', 'remarks']
+        widgets = {
+            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'working_hours': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0', 'max': '24'}),
+            'overtime_hours': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0'}),
             'remarks': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
         }
 

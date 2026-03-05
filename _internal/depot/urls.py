@@ -19,6 +19,8 @@ urlpatterns = [
     # Attendance
     path('attendance/', views.attendance_list, name='attendance_list'),
     path('attendance/add/', views.attendance_add, name='attendance_add'),
+    path('attendance/<int:pk>/edit/', views.attendance_edit, name='attendance_edit'),
+    path('attendance/<int:pk>/delete/', views.attendance_delete, name='attendance_delete'),
     # Salary
     path('salary/', views.salary_report, name='salary_report'),
     path('salary/calculate/', views.salary_calculate, name='salary_calculate'),
@@ -31,4 +33,7 @@ urlpatterns = [
     path('loans/<int:pk>/edit/', views.loan_edit, name='loan_edit'),
     path('loans/<int:pk>/delete/', views.loan_delete, name='loan_delete'),
     path('loans/<int:pk>/payment/', views.loan_payment, name='loan_payment'),
+    # Increment
+    path('increment/', views.increment_recommendation, name='increment_recommendation'),
+    path('increment/<int:pk>/apply/', views.apply_increment, name='apply_increment'),
 ]

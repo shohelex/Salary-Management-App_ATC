@@ -1,6 +1,7 @@
 from django import forms
-from .models import Depot, DepotEmployee, DepotSalary, DepotLoan
+from .models import Depot, DepotEmployee, DepotAttendance, DepotSalary, DepotLoan
 from datetime import date
+from decimal import Decimal
 
 
 class DepotForm(forms.ModelForm):
@@ -65,3 +66,28 @@ class DepotLoanForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['employee'].queryset = DepotEmployee.objects.filter(is_active=True)
+
+
+class DepotAttendanceEditForm(forms.ModelForm):
+    class Meta:
+        model = DepotAttendance
+        fields = ['date', 'status', 'night_bill', 'remarks']
+        widgets = {
+            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'night_bill': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'remarks': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
+        }
+
+
+class DepotApplyIncrementForm(forms.Form):
+    new_salary = forms.DecimalField(
+        max_digits=10, decimal_places=2,
+        min_value=Decimal('0'),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '100'}),
+        label='New Basic Salary'
+    )
+    remarks = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Reason for increment'}),
+    )

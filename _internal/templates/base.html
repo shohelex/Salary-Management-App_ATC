@@ -108,6 +108,12 @@
                         <span>Depot Loans</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'depot:increment' in request.resolver_match.view_name or 'depot:apply_increment' in request.resolver_match.view_name %}active{% endif %}" href="{% url 'depot:increment_recommendation' %}">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Depot Increment</span>
+                    </a>
+                </li>
 
                 <li class="nav-section">FINANCE</li>
                 <li class="nav-item">

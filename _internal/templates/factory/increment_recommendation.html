@@ -7,12 +7,23 @@
 {% endblock %}
 
 {% block content %}
+<!-- Print Header -->
+<div class="print-header">
+    <h1>Asian Trade Corporation</h1>
+    <p class="print-subtitle">Business Management System</p>
+    <p class="print-report-title">Year-End Increment Recommendations</p>
+    <p class="print-date-info">Year: {{ selected_year }} | Printed: {% now "d F Y, h:i A" %}</p>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <form method="get" class="d-flex align-items-center gap-2">
         <label class="fw-bold">Year:</label>
         <input type="number" name="year" value="{{ selected_year }}" class="form-control form-control-sm" style="width: 100px;" onchange="this.form.submit()">
     </form>
-    <div>
+    <div class="d-flex gap-2 align-items-center">
+        <button class="btn btn-print btn-sm" onclick="window.print()">
+            <i class="fas fa-print me-1"></i> Print
+        </button>
         <span class="badge bg-success">Excellent (9-10): 15%</span>
         <span class="badge bg-primary">Good (7-8): 10%</span>
         <span class="badge bg-warning text-dark">Average (5-6): 5%</span>
@@ -36,6 +47,7 @@
                         <th>Increment %</th>
                         <th>Increment Amount</th>
                         <th>Recommended Salary</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -66,10 +78,15 @@
                         <td class="fw-bold text-success">{{ rec.increment_pct }}%</td>
                         <td>৳{{ rec.increment_amount|floatformat:0|intcomma }}</td>
                         <td class="fw-bold text-primary">৳{{ rec.new_salary|floatformat:0|intcomma }}</td>
+                        <td>
+                            <a href="{% url 'factory:apply_increment' rec.employee.pk %}?year={{ selected_year }}" class="btn btn-sm btn-outline-success" title="Apply Increment">
+                                <i class="fas fa-check me-1"></i>Apply
+                            </a>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="text-center py-5 text-muted">
+                        <td colspan="10" class="text-center py-5 text-muted">
                             <i class="fas fa-chart-line fa-3x mb-3 d-block"></i>
                             <p>No employees found. Add employees first.</p>
                         </td>
