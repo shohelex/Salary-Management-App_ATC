@@ -1,5 +1,7 @@
 # Asian Trade Corporation — Management System
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A comprehensive business management system built with Django for **Asian Trade Corporation (ATC)**. It manages factory and depot employees, attendance, salaries, loans, expenses, and financial reporting — all from a single web-based interface.
 
 ---
@@ -250,4 +252,6 @@ The system uses **Asia/Dhaka** timezone.
 
 ## License
 
-This project is for internal use by Asian Trade Corporation.
+This project is licensed under the [MIT License](LICENSE). You are free to use, modify, and distribute this software — just keep the original copyright notice.
+
+© 2026 shohelex
