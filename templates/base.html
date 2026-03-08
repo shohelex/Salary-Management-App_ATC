@@ -128,12 +128,27 @@
                         <span>Sales vs Cost</span>
                     </a>
                 </li>
+
+                {% if request.user.is_superuser %}
+                <li class="nav-section">ADMINISTRATION</li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'core:user' in request.resolver_match.view_name or 'core:change_password' in request.resolver_match.view_name %}active{% endif %}" href="{% url 'core:user_list' %}">
+                        <i class="fas fa-users-cog"></i>
+                        <span>User Management</span>
+                    </a>
+                </li>
+                {% endif %}
             </ul>
         </nav>
 
         <div class="sidebar-footer">
-            <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-light w-100">
-                <i class="fas fa-cog me-1"></i> Admin Panel
+            <small class="text-muted d-block text-center mb-2">
+                <i class="fas fa-user-circle me-1"></i>
+                {{ request.user.get_full_name|default:request.user.username }}
+                {% if request.user.is_superuser %}<span class="badge bg-danger ms-1" style="font-size:0.65em;">Admin</span>{% endif %}
+            </small>
+            <a href="{% url 'core:logout' %}" class="btn btn-sm btn-outline-light w-100">
+                <i class="fas fa-sign-out-alt me-1"></i> Logout
             </a>
         </div>
     </aside>
@@ -153,6 +168,21 @@
                     <i class="fas fa-calendar me-1"></i>
                     {% now "D, d M Y" %}
                 </span>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i> {{ request.user.username }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><span class="dropdown-item-text text-muted small">
+                            {% if request.user.is_superuser %}Admin{% else %}Manager{% endif %}
+                        </span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% if request.user.is_superuser %}
+                        <li><a class="dropdown-item" href="{% url 'core:user_list' %}"><i class="fas fa-users-cog me-2"></i>User Management</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item text-danger" href="{% url 'core:logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
             </div>
         </nav>
 

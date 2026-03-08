@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    {% if edit_user %}
+                    <i class="fas fa-user-edit me-2"></i>Edit User: {{ edit_user.username }}
+                    {% else %}
+                    <i class="fas fa-user-plus me-2"></i>Create New User
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if not edit_user %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                        <input type="text" name="username" class="form-control" required
+                               placeholder="Enter username" value="{{ edit_user.username|default:'' }}">
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">First Name</label>
+                            <input type="text" name="first_name" class="form-control"
+                                   placeholder="First name" value="{{ edit_user.first_name|default:'' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Last Name</label>
+                            <input type="text" name="last_name" class="form-control"
+                                   placeholder="Last name" value="{{ edit_user.last_name|default:'' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Password {% if edit_user %}<small class="text-muted">(leave blank to keep current)</small>{% else %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        <input type="password" name="password" class="form-control"
+                               placeholder="Enter password" {% if not edit_user %}required{% endif %}>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Confirm Password</label>
+                        <input type="password" name="password2" class="form-control"
+                               placeholder="Confirm password" {% if not edit_user %}required{% endif %}>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_admin" id="isAdmin"
+                                   {% if edit_user.is_superuser %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="isAdmin">
+                                <i class="fas fa-crown text-warning me-1"></i> Admin privileges
+                            </label>
+                            <div class="form-text">Admins can create and manage other users.</div>
+                        </div>
+                    </div>
+
+                    {% if edit_user %}
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="isActive"
+                                   {% if edit_user.is_active %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="isActive">
+                                Active account
+                            </label>
+                            <div class="form-text">Inactive users cannot log in.</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            {% if edit_user %}Update User{% else %}Create User{% endif %}
+                        </button>
+                        <a href="{% url 'core:user_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

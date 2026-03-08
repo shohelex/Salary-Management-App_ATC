@@ -60,6 +60,13 @@ def main():
     call_command('migrate', '--run-syncdb', verbosity=0)
     print("      Database ready.")
 
+    # Create default admin if no users exist
+    from django.contrib.auth.models import User
+    if not User.objects.exists():
+        User.objects.create_superuser('admin', '', 'admin123')
+        print("      Default admin created (username: admin, password: admin123)")
+        print("      *** Please change the password after first login! ***")
+
     port = find_free_port()
     print(f"[2/2] Starting server on http://127.0.0.1:{port}")
     print()

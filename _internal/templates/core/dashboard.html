@@ -5,60 +5,227 @@
 {% block title %}Dashboard{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 22px 24px;
+        border: 1px solid #e8ecf1;
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        transform: translateY(-2px);
+    }
+    .stat-card .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .stat-card .stat-icon.blue { background: #eef2ff; color: #4f6ef7; }
+    .stat-card .stat-icon.green { background: #ecfdf5; color: #10b981; }
+    .stat-card .stat-icon.amber { background: #fffbeb; color: #f59e0b; }
+    .stat-card .stat-icon.rose { background: #fef2f2; color: #ef4444; }
+    .stat-card .stat-icon.teal { background: #f0fdfa; color: #14b8a6; }
+    .stat-card .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1.2;
+    }
+    .stat-card .stat-label {
+        font-size: 0.78rem;
+        color: #94a3b8;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .stat-card .stat-sub {
+        font-size: 0.75rem;
+        color: #a1aab7;
+        margin-top: 2px;
+    }
+    .dash-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #e8ecf1;
+        overflow: hidden;
+        height: 100%;
+    }
+    .dash-card .dash-card-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .dash-card .dash-card-header h6 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #334155;
+    }
+    .dash-card .dash-card-body {
+        padding: 20px;
+    }
+    .action-btn {
+        display: flex;
+        align-items: center;
+        padding: 10px 14px;
+        border-radius: 10px;
+        color: #475569;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.15s ease;
+        border: 1px solid #f1f5f9;
+        background: #fafbfc;
+    }
+    .action-btn:hover {
+        background: #f0f4ff;
+        border-color: #dbe4ff;
+        color: #4f6ef7;
+    }
+    .action-btn i {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        font-size: 0.85rem;
+    }
+    .action-btn .icon-blue { background: #eef2ff; color: #4f6ef7; }
+    .action-btn .icon-teal { background: #f0fdfa; color: #14b8a6; }
+    .action-btn .icon-amber { background: #fffbeb; color: #f59e0b; }
+    .action-btn .icon-green { background: #ecfdf5; color: #10b981; }
+    .action-btn .icon-slate { background: #f1f5f9; color: #64748b; }
+    .summary-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #f8fafc;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row .label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+    .summary-row .label .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    .summary-row .value {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #1e293b;
+    }
+    .expense-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f8fafc;
+    }
+    .expense-item:last-child { border-bottom: none; }
+    .expense-date {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+    .expense-desc {
+        font-size: 0.83rem;
+        color: #475569;
+        font-weight: 500;
+    }
+    .expense-amount {
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: #1e293b;
+    }
+    .type-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        margin-right: 6px;
+    }
+    .type-dot.factory { background: #4f6ef7; }
+    .type-dot.depot { background: #14b8a6; }
+    .chart-card canvas {
+        max-height: 260px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<!-- Stats Cards Row -->
+<!-- Stats Row -->
 <div class="row g-3 mb-4">
     <div class="col-xl-3 col-md-6">
-        <div class="stats-card bg-primary">
-            <div class="stats-card-body">
+        <div class="stat-card">
+            <div class="d-flex align-items-start justify-content-between">
                 <div>
-                    <h6 class="stats-label">Total Employees</h6>
-                    <h2 class="stats-value">{{ total_employees }}</h2>
-                    <small>Factory: {{ factory_employees }} | Depot: {{ depot_employees }}</small>
+                    <div class="stat-label">Total Employees</div>
+                    <div class="stat-value">{{ total_employees }}</div>
+                    <div class="stat-sub">Factory: {{ factory_employees }}  &middot;  Depot: {{ depot_employees }}</div>
                 </div>
-                <div class="stats-icon">
+                <div class="stat-icon blue">
                     <i class="fas fa-users"></i>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="stats-card bg-success">
-            <div class="stats-card-body">
+        <div class="stat-card">
+            <div class="d-flex align-items-start justify-content-between">
                 <div>
-                    <h6 class="stats-label">Today's Attendance</h6>
-                    <h2 class="stats-value">{{ factory_present }}</h2>
-                    <small>Factory Present Today</small>
+                    <div class="stat-label">Today's Attendance</div>
+                    <div class="stat-value">{{ factory_present }}<small class="text-muted" style="font-size:0.85rem;"> / {{ factory_employees }}</small></div>
+                    <div class="stat-sub">Factory present today</div>
                 </div>
-                <div class="stats-icon">
+                <div class="stat-icon green">
                     <i class="fas fa-clipboard-check"></i>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="stats-card bg-warning">
-            <div class="stats-card-body">
+        <div class="stat-card">
+            <div class="d-flex align-items-start justify-content-between">
                 <div>
-                    <h6 class="stats-label">Monthly Expenses</h6>
-                    <h2 class="stats-value">৳{{ total_monthly_expenses|floatformat:0|intcomma }}</h2>
-                    <small>Factory + Depot</small>
+                    <div class="stat-label">Monthly Expenses</div>
+                    <div class="stat-value">৳{{ total_monthly_expenses|floatformat:0|intcomma }}</div>
+                    <div class="stat-sub">combined</div>
                 </div>
-                <div class="stats-icon">
+                <div class="stat-icon amber">
                     <i class="fas fa-receipt"></i>
                 </div>
             </div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
-        <div class="stats-card {% if profit >= 0 %}bg-info{% else %}bg-danger{% endif %}">
-            <div class="stats-card-body">
+        <div class="stat-card">
+            <div class="d-flex align-items-start justify-content-between">
                 <div>
-                    <h6 class="stats-label">Monthly Profit</h6>
-                    <h2 class="stats-value">৳{{ profit|floatformat:0|intcomma }}</h2>
-                    <small>Sales - Cost</small>
+                    <div class="stat-label">Monthly Profit</div>
+                    <div class="stat-value {% if profit >= 0 %}text-success{% else %}text-danger{% endif %}">৳{{ profit|floatformat:0|intcomma }}</div>
+                    <div class="stat-sub">Sales &minus; Cost</div>
                 </div>
-                <div class="stats-icon">
+                <div class="stat-icon {% if profit >= 0 %}teal{% else %}rose{% endif %}">
                     <i class="fas fa-chart-line"></i>
                 </div>
             </div>
@@ -69,121 +236,117 @@
 <!-- Charts Row -->
 <div class="row g-3 mb-4">
     <div class="col-xl-8">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h6 class="mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>Sales vs Cost (Last 6 Months)</h6>
+        <div class="dash-card chart-card">
+            <div class="dash-card-header">
+                <h6><i class="fas fa-chart-bar me-2" style="color:#4f6ef7;"></i>Sales vs Cost <span class="text-muted fw-normal" style="font-size:0.78rem;">&mdash; Last 6 Months</span></h6>
             </div>
-            <div class="card-body">
-                <canvas id="salesCostChart" height="120"></canvas>
+            <div class="dash-card-body">
+                <canvas id="salesCostChart" height="110"></canvas>
             </div>
         </div>
     </div>
     <div class="col-xl-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h6 class="mb-0"><i class="fas fa-chart-pie me-2 text-primary"></i>Expense Breakdown</h6>
+        <div class="dash-card chart-card">
+            <div class="dash-card-header">
+                <h6><i class="fas fa-chart-pie me-2" style="color:#14b8a6;"></i>Expense Breakdown</h6>
             </div>
-            <div class="card-body">
-                <canvas id="expenseChart" height="200"></canvas>
-                <div class="text-center mt-3">
-                    <span class="badge bg-primary me-2">Factory: ৳{{ monthly_factory_expenses|floatformat:0|intcomma }}</span>
-                    <span class="badge bg-info">Depot: ৳{{ monthly_depot_expenses|floatformat:0|intcomma }}</span>
+            <div class="dash-card-body text-center">
+                <canvas id="expenseChart" height="190"></canvas>
+                <div class="mt-3 d-flex justify-content-center gap-3">
+                    <span style="font-size:0.8rem;color:#64748b;"><span class="type-dot factory"></span>Factory: ৳{{ monthly_factory_expenses|floatformat:0|intcomma }}</span>
+                    <span style="font-size:0.8rem;color:#64748b;"><span class="type-dot depot"></span>Depot: ৳{{ monthly_depot_expenses|floatformat:0|intcomma }}</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Actions & Recent -->
+<!-- Lower Section: Quick Actions | Summary | Recent Expenses -->
 <div class="row g-3">
-    <div class="col-xl-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h6 class="mb-0"><i class="fas fa-bolt me-2 text-warning"></i>Quick Actions</h6>
+    <div class="col-xl-4 d-flex">
+        <div class="dash-card w-100">
+            <div class="dash-card-header">
+                <h6><i class="fas fa-bolt me-2" style="color:#f59e0b;"></i>Quick Actions</h6>
             </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'factory:attendance_add' %}" class="btn btn-outline-primary btn-sm text-start">
-                        <i class="fas fa-clipboard-check me-2"></i>Mark Factory Attendance
-                    </a>
-                    <a href="{% url 'depot:attendance_add' %}" class="btn btn-outline-info btn-sm text-start">
-                        <i class="fas fa-calendar-check me-2"></i>Mark Depot Attendance
-                    </a>
-                    <a href="{% url 'expenses:expense_add' %}" class="btn btn-outline-warning btn-sm text-start">
-                        <i class="fas fa-plus-circle me-2"></i>Add Expense
-                    </a>
-                    <a href="{% url 'finance:sales_add' %}" class="btn btn-outline-success btn-sm text-start">
-                        <i class="fas fa-cash-register me-2"></i>Add Sales Record
-                    </a>
-                    <a href="{% url 'factory:employee_add' %}" class="btn btn-outline-secondary btn-sm text-start">
-                        <i class="fas fa-user-plus me-2"></i>Add Factory Employee
-                    </a>
-                    <a href="{% url 'factory:salary_report' %}" class="btn btn-outline-dark btn-sm text-start">
-                        <i class="fas fa-calculator me-2"></i>Calculate Salary
-                    </a>
+            <div class="dash-card-body d-flex flex-column gap-2">
+                <a href="{% url 'factory:attendance_add' %}" class="action-btn">
+                    <i class="icon-blue fas fa-clipboard-check"></i> Mark Factory Attendance
+                </a>
+                <a href="{% url 'depot:attendance_add' %}" class="action-btn">
+                    <i class="icon-teal fas fa-calendar-check"></i> Mark Depot Attendance
+                </a>
+                <a href="{% url 'expenses:expense_add' %}" class="action-btn">
+                    <i class="icon-amber fas fa-plus-circle"></i> Add Expense
+                </a>
+                <a href="{% url 'finance:sales_add' %}" class="action-btn">
+                    <i class="icon-green fas fa-cash-register"></i> Add Sales Record
+                </a>
+                <a href="{% url 'factory:employee_add' %}" class="action-btn">
+                    <i class="icon-slate fas fa-user-plus"></i> Add Factory Employee
+                </a>
+                <a href="{% url 'factory:salary_report' %}" class="action-btn">
+                    <i class="icon-blue fas fa-calculator"></i> Salary Report
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 d-flex">
+        <div class="dash-card w-100">
+            <div class="dash-card-header">
+                <h6><i class="fas fa-info-circle me-2" style="color:#4f6ef7;"></i>Summary</h6>
+            </div>
+            <div class="dash-card-body">
+                <div class="summary-row">
+                    <div class="label"><span class="dot" style="background:#4f6ef7;"></span>Factory Workers</div>
+                    <div class="value">{{ factory_employees }}</div>
+                </div>
+                <div class="summary-row">
+                    <div class="label"><span class="dot" style="background:#14b8a6;"></span>Active Depots</div>
+                    <div class="value">{{ total_depots }}</div>
+                </div>
+                <div class="summary-row">
+                    <div class="label"><span class="dot" style="background:#10b981;"></span>Depot Workers</div>
+                    <div class="value">{{ depot_employees }}</div>
+                </div>
+                <div class="summary-row">
+                    <div class="label"><span class="dot" style="background:#f59e0b;"></span>Monthly Sales</div>
+                    <div class="value">৳{{ monthly_sales|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="summary-row">
+                    <div class="label"><span class="dot" style="background:#ef4444;"></span>Monthly Costs</div>
+                    <div class="value">৳{{ monthly_costs|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="summary-row" style="background:#f8fafc;border-radius:8px;padding:10px 12px;margin-top:6px;">
+                    <div class="label" style="color:#334155;font-weight:600;"><span class="dot" style="background:{% if profit >= 0 %}#10b981{% else %}#ef4444{% endif %};"></span>Net Profit</div>
+                    <div class="value {% if profit >= 0 %}text-success{% else %}text-danger{% endif %}">৳{{ profit|floatformat:0|intcomma }}</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-xl-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h6 class="mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Summary</h6>
+    <div class="col-xl-4 d-flex">
+        <div class="dash-card w-100">
+            <div class="dash-card-header">
+                <h6><i class="fas fa-clock me-2" style="color:#64748b;"></i>Recent Expenses</h6>
+                <a href="{% url 'expenses:expense_list' %}" style="font-size:0.78rem;color:#4f6ef7;text-decoration:none;font-weight:500;">View All &rarr;</a>
             </div>
-            <div class="card-body">
-                <table class="table table-sm table-borderless">
-                    <tr>
-                        <td><i class="fas fa-industry text-primary me-2"></i>Factory Workers</td>
-                        <td class="text-end fw-bold">{{ factory_employees }}</td>
-                    </tr>
-                    <tr>
-                        <td><i class="fas fa-warehouse text-info me-2"></i>Active Depots</td>
-                        <td class="text-end fw-bold">{{ total_depots }}</td>
-                    </tr>
-                    <tr>
-                        <td><i class="fas fa-user-tie text-success me-2"></i>Depot Workers</td>
-                        <td class="text-end fw-bold">{{ depot_employees }}</td>
-                    </tr>
-                    <tr>
-                        <td><i class="fas fa-money-bill text-warning me-2"></i>Monthly Sales</td>
-                        <td class="text-end fw-bold">৳{{ monthly_sales|floatformat:0|intcomma }}</td>
-                    </tr>
-                    <tr>
-                        <td><i class="fas fa-coins text-danger me-2"></i>Monthly Costs</td>
-                        <td class="text-end fw-bold">৳{{ monthly_costs|floatformat:0|intcomma }}</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h6 class="mb-0"><i class="fas fa-clock me-2 text-info"></i>Recent Expenses</h6>
-                <a href="{% url 'expenses:expense_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
-            </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    {% for expense in recent_expenses %}
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <small class="text-muted">{{ expense.date|date:"d M" }}</small>
-                                <p class="mb-0 small">{{ expense.description|truncatewords:8 }}</p>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-{% if expense.expense_type == 'factory' %}primary{% else %}info{% endif %}">{{ expense.get_expense_type_display }}</span>
-                                <p class="mb-0 fw-bold small">৳{{ expense.amount|floatformat:0|intcomma }}</p>
-                            </div>
+            <div class="dash-card-body">
+                {% for expense in recent_expenses %}
+                <div class="expense-item">
+                    <div>
+                        <div class="expense-date">{{ expense.date|date:"d M Y" }}</div>
+                        <div class="expense-desc">
+                            <span class="type-dot {% if expense.expense_type == 'factory' %}factory{% else %}depot{% endif %}"></span>
+                            {{ expense.description|truncatewords:6 }}
                         </div>
                     </div>
-                    {% empty %}
-                    <div class="list-group-item text-center text-muted py-4">
-                        <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
-                        No expenses recorded yet
-                    </div>
-                    {% endfor %}
+                    <div class="expense-amount">৳{{ expense.amount|floatformat:0|intcomma }}</div>
                 </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-2x mb-2" style="color:#cbd5e1;"></i>
+                    <p class="text-muted mb-0" style="font-size:0.85rem;">No expenses recorded yet</p>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -202,28 +365,44 @@
                 {
                     label: 'Sales',
                     data: {{ chart_sales|safe }},
-                    backgroundColor: 'rgba(40, 167, 69, 0.8)',
-                    borderRadius: 4,
+                    backgroundColor: '#10b981',
+                    borderRadius: 6,
+                    borderSkipped: false,
                 },
                 {
                     label: 'Costs',
                     data: {{ chart_costs|safe }},
-                    backgroundColor: 'rgba(220, 53, 69, 0.8)',
-                    borderRadius: 4,
+                    backgroundColor: '#ef4444',
+                    borderRadius: 6,
+                    borderSkipped: false,
                 },
                 {
                     label: 'Expenses',
                     data: {{ chart_expenses|safe }},
-                    backgroundColor: 'rgba(255, 193, 7, 0.8)',
-                    borderRadius: 4,
+                    backgroundColor: '#f59e0b',
+                    borderRadius: 6,
+                    borderSkipped: false,
                 }
             ]
         },
         options: {
             responsive: true,
-            plugins: { legend: { position: 'bottom' } },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { usePointStyle: true, pointStyle: 'circle', padding: 20, font: { size: 12 } }
+                }
+            },
             scales: {
-                y: { beginAtZero: true, ticks: { callback: v => '৳' + v.toLocaleString() } }
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f1f5f9' },
+                    ticks: { callback: v => '৳' + v.toLocaleString(), font: { size: 11 } }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11 } }
+                }
             }
         }
     });
@@ -236,14 +415,20 @@
             labels: ['Factory', 'Depot'],
             datasets: [{
                 data: [{{ monthly_factory_expenses }}, {{ monthly_depot_expenses }}],
-                backgroundColor: ['rgba(13, 110, 253, 0.8)', 'rgba(13, 202, 240, 0.8)'],
+                backgroundColor: ['#4f6ef7', '#14b8a6'],
                 borderWidth: 0,
+                spacing: 3,
             }]
         },
         options: {
             responsive: true,
-            cutout: '65%',
-            plugins: { legend: { position: 'bottom' } }
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { usePointStyle: true, pointStyle: 'circle', padding: 16, font: { size: 12 } }
+                }
+            }
         }
     });
 </script>
