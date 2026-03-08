@@ -24,11 +24,9 @@
         <button class="btn btn-print btn-sm" onclick="window.print()">
             <i class="fas fa-print me-1"></i> Print
         </button>
-        <span class="badge bg-success">Excellent (9-10): 15%</span>
-        <span class="badge bg-primary">Good (7-8): 10%</span>
-        <span class="badge bg-warning text-dark">Average (5-6): 5%</span>
-        <span class="badge bg-secondary">Below Avg (3-4): 2%</span>
-        <span class="badge bg-danger">Poor (1-2): 0%</span>
+        <span class="badge bg-success">Best (8+): 15%</span>
+        <span class="badge bg-primary">Good (5-7.9): 10%</span>
+        <span class="badge bg-warning text-dark">Not so good (&lt;5): 5%</span>
     </div>
 </div>
 
@@ -41,9 +39,11 @@
                         <th>#</th>
                         <th>Employee</th>
                         <th>Current Salary</th>
-                        <th>Months Evaluated</th>
-                        <th>Overall Score</th>
-                        <th>Category</th>
+                        <th>Present Days</th>
+                        <th>Regular Hrs</th>
+                        <th>OT Hrs</th>
+                        <th>Score</th>
+                        <th>Suggestion</th>
                         <th>Increment %</th>
                         <th>Increment Amount</th>
                         <th>Recommended Salary</th>
@@ -61,11 +61,13 @@
                         </td>
                         <td>৳{{ rec.employee.basic_salary|floatformat:0|intcomma }}</td>
                         <td>
-                            <span class="badge bg-light text-dark">{{ rec.months_evaluated }} months</span>
+                            <span class="badge bg-light text-dark">{{ rec.present_days }} / {{ rec.total_days }} days</span>
                         </td>
+                        <td>{{ rec.total_reg_hrs|floatformat:1 }}</td>
+                        <td>{{ rec.total_ot_hrs|floatformat:1 }}</td>
                         <td>
                             {% if rec.overall > 0 %}
-                            <span class="badge fs-6 {% if rec.overall >= 8 %}bg-success{% elif rec.overall >= 5 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                            <span class="badge fs-6 {% if rec.overall >= 8 %}bg-success{% elif rec.overall >= 5 %}bg-primary{% else %}bg-warning text-dark{% endif %}">
                                 {{ rec.overall }}/10
                             </span>
                             {% else %}
@@ -73,7 +75,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <span class="badge {{ rec.badge_class }}">{{ rec.category }}</span>
+                            <span class="badge {{ rec.badge_class }}">{{ rec.suggestion }}</span>
                         </td>
                         <td class="fw-bold text-success">{{ rec.increment_pct }}%</td>
                         <td>৳{{ rec.increment_amount|floatformat:0|intcomma }}</td>
@@ -86,7 +88,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="10" class="text-center py-5 text-muted">
+                        <td colspan="12" class="text-center py-5 text-muted">
                             <i class="fas fa-chart-line fa-3x mb-3 d-block"></i>
                             <p>No employees found. Add employees first.</p>
                         </td>
@@ -106,24 +108,22 @@
     <div class="card-body">
         <div class="row">
             <div class="col-md-6">
-                <h6>Performance Categories</h6>
+                <h6>Performance Categories (Attendance-Based)</h6>
                 <ul class="list-unstyled">
-                    <li class="mb-1"><span class="badge bg-success">Excellent (9-10)</span> → 15% increment</li>
-                    <li class="mb-1"><span class="badge bg-primary">Good (7-8)</span> → 10% increment</li>
-                    <li class="mb-1"><span class="badge bg-warning text-dark">Average (5-6)</span> → 5% increment</li>
-                    <li class="mb-1"><span class="badge bg-secondary">Below Average (3-4)</span> → 2% increment</li>
-                    <li class="mb-1"><span class="badge bg-danger">Poor (1-2)</span> → No increment</li>
+                    <li class="mb-1"><span class="badge bg-success">Best (Score 8+)</span> → 15% increment</li>
+                    <li class="mb-1"><span class="badge bg-primary">Good (Score 5-7.9)</span> → 10% increment</li>
+                    <li class="mb-1"><span class="badge bg-warning text-dark">Not so good (Score &lt;5)</span> → 5% increment</li>
+                    <li class="mb-1"><span class="badge bg-light text-dark">No Data</span> → 0% increment</li>
                 </ul>
             </div>
             <div class="col-md-6">
-                <h6>Scoring Areas</h6>
+                <h6>Scoring Formula</h6>
                 <ul class="list-unstyled">
-                    <li class="mb-1">📋 Quality of Work (1-10)</li>
-                    <li class="mb-1">⏰ Punctuality (1-10)</li>
-                    <li class="mb-1">📈 Productivity (1-10)</li>
-                    <li class="mb-1">🤝 Teamwork (1-10)</li>
+                    <li class="mb-1">📅 <strong>Presence Rate (40%)</strong> — Present days / Total recorded days</li>
+                    <li class="mb-1">⏰ <strong>Work Hours (35%)</strong> — Avg daily hours (8h = perfect)</li>
+                    <li class="mb-1">🔥 <strong>Overtime Commitment (25%)</strong> — Avg daily OT hours</li>
                 </ul>
-                <p class="text-muted small">Overall = Average of all four scores</p>
+                <p class="text-muted small">Score is automatically calculated from attendance records for the selected year.</p>
             </div>
         </div>
     </div>

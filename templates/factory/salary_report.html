@@ -53,12 +53,36 @@
 </div>
 
 {% if salaries %}
+<form id="bulkActionForm" method="post" action="{% url 'factory:salary_bulk_action' %}">
+    {% csrf_token %}
+    <input type="hidden" name="month" value="{{ selected_month }}">
+    <input type="hidden" name="year" value="{{ selected_year }}">
+    <input type="hidden" name="bulk_action" id="bulkActionField" value="">
+
+    <!-- Bulk Action Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-2 no-print">
+        <div class="d-flex align-items-center gap-2">
+            <span id="selectedCount" class="badge bg-secondary">0 selected</span>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-warning btn-sm" id="btnBulkFinalize" disabled
+                    onclick="if(confirm('Finalize selected salary records? This will process loan installments and create loans for negative balances.')){document.getElementById('bulkActionField').value='finalize';document.getElementById('bulkActionForm').submit();}">
+                <i class="fas fa-check-double me-1"></i> Finalize Selected
+            </button>
+            <button type="button" class="btn btn-outline-danger btn-sm" id="btnBulkDelete" disabled
+                    onclick="if(confirm('Delete all selected salary records? This cannot be undone.')){document.getElementById('bulkActionField').value='delete';document.getElementById('bulkActionForm').submit();}">
+                <i class="fas fa-trash me-1"></i> Delete Selected
+            </button>
+        </div>
+    </div>
+
 <div class="card shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0">
                 <thead class="table-dark">
                     <tr>
+                        <th class="no-print"><input type="checkbox" id="selectAll" title="Select All"></th>
                         <th>#</th>
                         <th>Employee</th>
                         <th>Days</th>
@@ -71,12 +95,13 @@
                         <th>Weekly Paid</th>
                         <th>Balance</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th class="no-print">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for s in salaries %}
                     <tr>
+                        <td class="no-print"><input type="checkbox" name="selected_salaries" value="{{ s.pk }}" class="salary-checkbox"></td>
                         <td>{{ forloop.counter }}</td>
                         <td><a href="{% url 'factory:employee_detail' s.employee.pk %}">{{ s.employee.name }}</a></td>
                         <td>{{ s.present_days }}</td>
@@ -89,6 +114,28 @@
                         <td>৳{{ s.total_weekly_payments|floatformat:0|intcomma }}</td>
                         <td class="fw-bold {% if s.balance < 0 %}text-danger{% else %}text-success{% endif %}">
                             ৳{{ s.balance|floatformat:0|intcomma }}
+                            {% if s.balance < 0 and not s.is_finalized %}
+                            <div class="mt-1 no-print">
+                                <div class="btn-group btn-group-sm">
+                                    <form method="post" action="{% url 'factory:salary_handle_overpayment' s.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_to_loan">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Add excess to loan"
+                                                onclick="return confirm('Add ৳{{ s.balance|floatformat:0 }} as loan for {{ s.employee.name }}?');">
+                                            <i class="fas fa-file-invoice-dollar"></i> Loan
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'factory:salary_handle_overpayment' s.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="mark_repaid">
+                                        <button type="submit" class="btn btn-outline-success btn-sm" title="Mark as repaid"
+                                                onclick="return confirm('Mark overpayment as repaid for {{ s.employee.name }}?');">
+                                            <i class="fas fa-hand-holding-usd"></i> Repaid
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endif %}
                         </td>
                         <td>
                             {% if s.is_finalized %}
@@ -97,7 +144,7 @@
                             <span class="badge bg-warning">Pending</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="no-print">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'factory:salary_edit' s.pk %}" class="btn btn-outline-primary" title="Edit">
                                     <i class="fas fa-edit"></i>
@@ -112,8 +159,9 @@
                 </tbody>
                 <tfoot class="table-light fw-bold">
                     <tr>
+                        <td class="no-print"></td>
                         <td colspan="8" class="text-end">Totals:</td>
-                        <td>৳{{ total_salary|floatformat:0|intcomma }}</td>
+                        <td>৳{{ total_net|floatformat:0|intcomma }}</td>
                         <td>৳{{ total_weekly|floatformat:0|intcomma }}</td>
                         <td class="{% if total_balance < 0 %}text-danger{% else %}text-success{% endif %}">৳{{ total_balance|floatformat:0|intcomma }}</td>
                         <td colspan="2"></td>
@@ -123,6 +171,7 @@
         </div>
     </div>
 </div>
+</form>
 {% else %}
 <div class="text-center py-5">
     <i class="fas fa-calculator fa-3x text-muted mb-3"></i>
@@ -148,4 +197,35 @@
 <div class="print-footer">
     Asian Trade Corporation • Salary Report • Generated from ATC Management System
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.salary-checkbox');
+    const selectedCount = document.getElementById('selectedCount');
+    const btnFinalize = document.getElementById('btnBulkFinalize');
+    const btnDelete = document.getElementById('btnBulkDelete');
+
+    function updateSelection() {
+        const checked = document.querySelectorAll('.salary-checkbox:checked').length;
+        selectedCount.textContent = checked + ' selected';
+        selectedCount.className = 'badge ' + (checked > 0 ? 'bg-primary' : 'bg-secondary');
+        btnFinalize.disabled = checked === 0;
+        btnDelete.disabled = checked === 0;
+        selectAll.checked = checked === checkboxes.length && checkboxes.length > 0;
+        selectAll.indeterminate = checked > 0 && checked < checkboxes.length;
+    }
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            updateSelection();
+        });
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateSelection));
+});
+</script>
 {% endblock %}

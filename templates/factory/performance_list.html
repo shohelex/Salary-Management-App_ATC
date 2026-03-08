@@ -128,4 +128,88 @@
         </div>
     </div>
 </div>
+
+<!-- Performance Graph based on Attendance Data -->
+{% if graph_labels %}
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>Performance Graph (Attendance-Based) — Up to {{ selected_month }}/{{ selected_year }}</h6>
+    </div>
+    <div class="card-body">
+        <canvas id="performanceChart" height="100"></canvas>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const labels = {{ graph_labels|safe }};
+    const presenceData = {{ graph_presence|safe }};
+    const regHrsData = {{ graph_regular_hrs|safe }};
+    const otHrsData = {{ graph_overtime_hrs|safe }};
+
+    if (labels.length > 0 && document.getElementById('performanceChart')) {
+        new Chart(document.getElementById('performanceChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Present Days',
+                        data: presenceData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Regular Hours',
+                        data: regHrsData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    },
+                    {
+                        label: 'Overtime Hours',
+                        data: otHrsData,
+                        backgroundColor: 'rgba(255, 159, 64, 0.7)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top' },
+                    title: {
+                        display: true,
+                        text: 'Employee Attendance & Work Hours'
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        title: { display: true, text: 'Days' },
+                        beginAtZero: true
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        title: { display: true, text: 'Hours' },
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

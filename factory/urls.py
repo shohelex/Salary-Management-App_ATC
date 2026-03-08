@@ -36,8 +36,10 @@ urlpatterns = [
     path('salary/', views.salary_report, name='salary_report'),
     path('salary/calculate/', views.salary_calculate, name='salary_calculate'),
     path('salary/finalize/', views.salary_finalize, name='salary_finalize'),
+    path('salary/bulk-action/', views.salary_bulk_action, name='salary_bulk_action'),
     path('salary/<int:pk>/edit/', views.salary_edit, name='salary_edit'),
     path('salary/<int:pk>/delete/', views.salary_delete, name='salary_delete'),
+    path('salary/<int:pk>/overpayment/', views.salary_handle_overpayment, name='salary_handle_overpayment'),
     # Increment
     path('increment/', views.increment_recommendation, name='increment_recommendation'),
     path('increment/<int:pk>/apply/', views.apply_increment, name='apply_increment'),

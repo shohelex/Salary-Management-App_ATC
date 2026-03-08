@@ -4,6 +4,7 @@ from django.db.models import Sum, Avg, Q
 from datetime import date, timedelta
 from decimal import Decimal
 import calendar
+import json
 
 from .models import (FactoryEmployee, FactoryAttendance, MonthlyPerformance,
                      FactorySalary, WeeklyPayment, FactoryLoan)
@@ -407,9 +408,35 @@ def performance_list(request):
     except ValueError:
         month, year = date.today().month, date.today().year
     records = MonthlyPerformance.objects.filter(month=month, year=year).select_related('employee')
+
+    # Build attendance-based performance graph data for the selected year
+    employees = FactoryEmployee.objects.filter(is_active=True).order_by('name')
+    graph_labels = []  # employee names
+    graph_presence = []  # total present days in year
+    graph_regular_hrs = []  # total regular hours in year
+    graph_overtime_hrs = []  # total overtime hours in year
+
+    for emp in employees:
+        att = FactoryAttendance.objects.filter(
+            employee=emp, date__year=year, date__month__lte=month
+        )
+        present = att.filter(Q(status='present') | Q(status='half_day')).count()
+        reg_hrs = att.filter(
+            Q(status='present') | Q(status='half_day')
+        ).aggregate(total=Sum('working_hours'))['total'] or 0
+        ot_hrs = att.aggregate(total=Sum('overtime_hours'))['total'] or 0
+        graph_labels.append(emp.name)
+        graph_presence.append(present)
+        graph_regular_hrs.append(float(reg_hrs))
+        graph_overtime_hrs.append(float(ot_hrs))
+
     return render(request, 'factory/performance_list.html', {
         'records': records, 'selected_month': month, 'selected_year': year,
         'months': [(i, calendar.month_name[i]) for i in range(1, 13)],
+        'graph_labels': json.dumps(graph_labels),
+        'graph_presence': json.dumps(graph_presence),
+        'graph_regular_hrs': json.dumps(graph_regular_hrs),
+        'graph_overtime_hrs': json.dumps(graph_overtime_hrs),
     })
 
 
@@ -566,34 +593,122 @@ def salary_finalize(request):
         ).select_related('employee')
         processed = 0
         for salary in salaries:
-            if salary.loan_deduction > 0:
-                active_loans = FactoryLoan.objects.filter(
-                    employee=salary.employee, is_active=True
-                ).order_by('loan_date')
-                remaining = salary.loan_deduction
-                for loan in active_loans:
-                    if remaining <= 0:
-                        break
-                    payment = min(remaining, loan.remaining_balance)
-                    loan.make_payment(payment)
-                    remaining -= payment
-            if salary.balance < 0:
-                excess = abs(salary.balance)
-                FactoryLoan.objects.create(
-                    employee=salary.employee, loan_date=date.today(),
-                    loan_amount=excess, monthly_installment=excess,
-                    remaining_balance=excess, is_active=True,
-                    remarks=f"Excess advance - {calendar.month_name[month]} {year}",
-                )
-            salary.is_finalized = True
-            salary.save()
+            _finalize_single_salary(salary)
             processed += 1
         messages.success(request, f'Finalized salary for {processed} employees!')
         return redirect(f'/factory/salary/?month={month}&year={year}')
     return redirect('factory:salary_report')
 
 
+def _finalize_single_salary(salary):
+    """Helper to finalize a single salary record."""
+    if salary.loan_deduction > 0:
+        active_loans = FactoryLoan.objects.filter(
+            employee=salary.employee, is_active=True
+        ).order_by('loan_date')
+        remaining = salary.loan_deduction
+        for loan in active_loans:
+            if remaining <= 0:
+                break
+            payment = min(remaining, loan.remaining_balance)
+            loan.make_payment(payment)
+            remaining -= payment
+    if salary.balance < 0:
+        excess = abs(salary.balance)
+        FactoryLoan.objects.create(
+            employee=salary.employee, loan_date=date.today(),
+            loan_amount=excess, monthly_installment=excess,
+            remaining_balance=excess, is_active=True,
+            remarks=f"Excess advance - {calendar.month_name[salary.month]} {salary.year}",
+        )
+    salary.is_finalized = True
+    salary.save()
+
+
+def salary_handle_overpayment(request, pk):
+    """Handle negative balance: add to loan or mark as repaid."""
+    salary = get_object_or_404(FactorySalary, pk=pk)
+    if request.method == 'POST' and salary.balance < 0 and not salary.is_finalized:
+        action = request.POST.get('action', '')
+        excess = abs(salary.balance)
+        if action == 'add_to_loan':
+            FactoryLoan.objects.create(
+                employee=salary.employee, loan_date=date.today(),
+                loan_amount=excess, monthly_installment=excess,
+                remaining_balance=excess, is_active=True,
+                remarks=f"Excess advance - {calendar.month_name[salary.month]} {salary.year}",
+            )
+            messages.success(request, f'৳{excess:,.0f} added as loan for {salary.employee.name}.')
+        elif action == 'mark_repaid':
+            salary.balance = Decimal('0')
+            salary.total_weekly_payments = salary.net_salary
+            salary.save()
+            messages.success(request, f'Overpayment of ৳{excess:,.0f} marked as repaid for {salary.employee.name}.')
+    return redirect(f'/factory/salary/?month={salary.month}&year={salary.year}')
+
+
+def salary_bulk_action(request):
+    """Handle bulk delete or bulk finalize of selected salary records."""
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist('selected_salaries')
+        action = request.POST.get('bulk_action', '')
+        month = request.POST.get('month', str(date.today().month))
+        year = request.POST.get('year', str(date.today().year))
+        if not selected_ids:
+            messages.warning(request, 'No salary records selected.')
+            return redirect(f'/factory/salary/?month={month}&year={year}')
+
+        salaries = FactorySalary.objects.filter(pk__in=selected_ids)
+        if action == 'delete':
+            count = salaries.count()
+            salaries.delete()
+            messages.success(request, f'Deleted {count} salary record(s).')
+        elif action == 'finalize':
+            processed = 0
+            for salary in salaries.filter(is_finalized=False).select_related('employee'):
+                _finalize_single_salary(salary)
+                processed += 1
+            messages.success(request, f'Finalized {processed} salary record(s).')
+        return redirect(f'/factory/salary/?month={month}&year={year}')
+    return redirect('factory:salary_report')
+
+
 # ─── Increment View ─────────────────────────────────────────
+
+def _get_attendance_score(emp, year):
+    """Calculate attendance-based performance score (1-10) from actual records."""
+    att = FactoryAttendance.objects.filter(employee=emp, date__year=year)
+    total_days = att.count()
+    if total_days == 0:
+        return 0, 0, 0, 0, 'No Data'
+
+    present_days = att.filter(Q(status='present') | Q(status='half_day')).count()
+    total_reg_hrs = att.filter(
+        Q(status='present') | Q(status='half_day')
+    ).aggregate(total=Sum('working_hours'))['total'] or Decimal('0')
+    total_ot_hrs = att.aggregate(total=Sum('overtime_hours'))['total'] or Decimal('0')
+
+    # Presence rate (out of 10)
+    presence_rate = (present_days / total_days) * 10 if total_days > 0 else 0
+    # Avg daily hours score: 8hrs = 10, scale proportionally
+    avg_daily_hrs = float(total_reg_hrs) / present_days if present_days > 0 else 0
+    hours_score = min((avg_daily_hrs / 8) * 10, 10)
+    # Overtime commitment: bonus score from OT
+    avg_ot = float(total_ot_hrs) / present_days if present_days > 0 else 0
+    ot_score = min(avg_ot * 2.5, 10)  # 4hrs OT/day = perfect 10
+
+    # Weighted overall: 40% presence, 35% hours, 25% overtime
+    overall = (presence_rate * 0.4) + (hours_score * 0.35) + (ot_score * 0.25)
+
+    if overall >= 8:
+        suggestion = 'Best'
+    elif overall >= 5:
+        suggestion = 'Good'
+    else:
+        suggestion = 'Not so good'
+
+    return round(presence_rate, 1), round(hours_score, 1), round(ot_score, 1), round(overall, 1), suggestion
+
 
 def increment_recommendation(request):
     year = request.GET.get('year', str(date.today().year))
@@ -604,32 +719,45 @@ def increment_recommendation(request):
     employees = FactoryEmployee.objects.filter(is_active=True)
     recommendations = []
     for emp in employees:
-        perfs = MonthlyPerformance.objects.filter(employee=emp, year=year)
-        if perfs.exists():
-            aq = perfs.aggregate(a=Avg('quality_score'))['a'] or 0
-            ap = perfs.aggregate(a=Avg('punctuality_score'))['a'] or 0
-            apr = perfs.aggregate(a=Avg('productivity_score'))['a'] or 0
-            at = perfs.aggregate(a=Avg('teamwork_score'))['a'] or 0
-            overall = (aq + ap + apr + at) / 4
-            if overall >= 9: cat, pct, badge = 'Excellent', 15, 'bg-success'
-            elif overall >= 7: cat, pct, badge = 'Good', 10, 'bg-primary'
-            elif overall >= 5: cat, pct, badge = 'Average', 5, 'bg-warning'
-            elif overall >= 3: cat, pct, badge = 'Below Average', 2, 'bg-secondary'
-            else: cat, pct, badge = 'Poor', 0, 'bg-danger'
-            inc_amt = emp.basic_salary * Decimal(str(pct)) / Decimal('100')
-            recommendations.append({
-                'employee': emp, 'avg_quality': round(aq, 1), 'avg_punctuality': round(ap, 1),
-                'avg_productivity': round(apr, 1), 'avg_teamwork': round(at, 1),
-                'overall': round(overall, 1), 'category': cat, 'badge_class': badge,
-                'increment_pct': pct, 'increment_amount': inc_amt,
-                'new_salary': emp.basic_salary + inc_amt, 'months_evaluated': perfs.count(),
-            })
+        presence_score, hours_score, ot_score, overall, suggestion = _get_attendance_score(emp, year)
+
+        if overall == 0:
+            cat, pct, badge = 'No Data', 0, 'bg-light text-dark'
+        elif overall >= 8:
+            cat, pct, badge = 'Best', 15, 'bg-success'
+        elif overall >= 5:
+            cat, pct, badge = 'Good', 10, 'bg-primary'
         else:
-            recommendations.append({
-                'employee': emp, 'overall': 0, 'category': 'No Data',
-                'badge_class': 'bg-light text-dark', 'increment_pct': 0,
-                'increment_amount': 0, 'new_salary': emp.basic_salary, 'months_evaluated': 0,
-            })
+            cat, pct, badge = 'Not so good', 5, 'bg-warning'
+
+        inc_amt = emp.basic_salary * Decimal(str(pct)) / Decimal('100')
+
+        # Get attendance stats for display
+        att = FactoryAttendance.objects.filter(employee=emp, date__year=year)
+        total_days = att.count()
+        present_days = att.filter(Q(status='present') | Q(status='half_day')).count()
+        total_reg_hrs = att.filter(
+            Q(status='present') | Q(status='half_day')
+        ).aggregate(total=Sum('working_hours'))['total'] or Decimal('0')
+        total_ot_hrs = att.aggregate(total=Sum('overtime_hours'))['total'] or Decimal('0')
+
+        recommendations.append({
+            'employee': emp,
+            'presence_score': presence_score,
+            'hours_score': hours_score,
+            'ot_score': ot_score,
+            'overall': overall,
+            'suggestion': suggestion,
+            'category': cat,
+            'badge_class': badge,
+            'increment_pct': pct,
+            'increment_amount': inc_amt,
+            'new_salary': emp.basic_salary + inc_amt,
+            'total_days': total_days,
+            'present_days': present_days,
+            'total_reg_hrs': total_reg_hrs,
+            'total_ot_hrs': total_ot_hrs,
+        })
     recommendations.sort(key=lambda x: x['overall'], reverse=True)
     return render(request, 'factory/increment_recommendation.html', {
         'recommendations': recommendations, 'selected_year': year,
@@ -644,22 +772,17 @@ def apply_increment(request, pk):
     except ValueError:
         year = date.today().year
 
-    # Calculate suggestion from performance data
-    perfs = MonthlyPerformance.objects.filter(employee=employee, year=year)
-    suggested_pct = 0
-    overall = 0
-    category = 'No Data'
-    if perfs.exists():
-        aq = perfs.aggregate(a=Avg('quality_score'))['a'] or 0
-        ap = perfs.aggregate(a=Avg('punctuality_score'))['a'] or 0
-        apr = perfs.aggregate(a=Avg('productivity_score'))['a'] or 0
-        at = perfs.aggregate(a=Avg('teamwork_score'))['a'] or 0
-        overall = round((aq + ap + apr + at) / 4, 1)
-        if overall >= 9: category, suggested_pct = 'Excellent', 15
-        elif overall >= 7: category, suggested_pct = 'Good', 10
-        elif overall >= 5: category, suggested_pct = 'Average', 5
-        elif overall >= 3: category, suggested_pct = 'Below Average', 2
-        else: category, suggested_pct = 'Poor', 0
+    # Calculate suggestion from attendance data
+    presence_score, hours_score, ot_score, overall, suggestion = _get_attendance_score(employee, year)
+
+    if overall == 0:
+        suggested_pct = 0
+    elif overall >= 8:
+        suggested_pct = 15
+    elif overall >= 5:
+        suggested_pct = 10
+    else:
+        suggested_pct = 5
 
     suggested_amount = employee.basic_salary * Decimal(str(suggested_pct)) / Decimal('100')
     suggested_new_salary = employee.basic_salary + suggested_amount
@@ -678,8 +801,7 @@ def apply_increment(request, pk):
 
     return render(request, 'factory/apply_increment.html', {
         'employee': employee, 'form': form, 'year': year,
-        'overall': overall, 'category': category,
+        'overall': overall, 'category': suggestion,
         'suggested_pct': suggested_pct, 'suggested_amount': suggested_amount,
         'suggested_new_salary': suggested_new_salary,
-        'months_evaluated': perfs.count() if perfs.exists() else 0,
     })
