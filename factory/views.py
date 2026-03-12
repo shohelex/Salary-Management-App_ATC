@@ -5,6 +5,9 @@ from datetime import date, timedelta
 from decimal import Decimal
 import calendar
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .models import (FactoryEmployee, FactoryAttendance, MonthlyPerformance,
                      FactorySalary, WeeklyPayment, FactoryLoan)
@@ -518,37 +521,46 @@ def salary_report(request):
 
 def salary_calculate(request):
     if request.method == 'POST':
-        month = int(request.POST.get('month', date.today().month))
-        year = int(request.POST.get('year', date.today().year))
-        employees = FactoryEmployee.objects.filter(is_active=True)
-        count = 0
-        for emp in employees:
-            att = FactoryAttendance.objects.filter(employee=emp, date__month=month, date__year=year)
-            present_count = att.filter(Q(status='present') | Q(status='half_day')).count()
-            total_regular = att.filter(
-                Q(status='present') | Q(status='half_day')
-            ).aggregate(total=Sum('working_hours'))['total'] or Decimal('0')
-            total_ot = att.aggregate(total=Sum('overtime_hours'))['total'] or Decimal('0')
-            loan_ded = FactoryLoan.objects.filter(
-                employee=emp, is_active=True
-            ).aggregate(total=Sum('monthly_installment'))['total'] or Decimal('0')
+        try:
+            month = int(request.POST.get('month', date.today().month))
+            year = int(request.POST.get('year', date.today().year))
+            employees = FactoryEmployee.objects.filter(is_active=True)
+            count = 0
+            for emp in employees:
+                try:
+                    att = FactoryAttendance.objects.filter(employee=emp, date__month=month, date__year=year)
+                    present_count = att.filter(Q(status='present') | Q(status='half_day')).count()
+                    total_regular = att.filter(
+                        Q(status='present') | Q(status='half_day')
+                    ).aggregate(total=Sum('working_hours'))['total'] or Decimal('0')
+                    total_ot = att.aggregate(total=Sum('overtime_hours'))['total'] or Decimal('0')
+                    loan_ded = FactoryLoan.objects.filter(
+                        employee=emp, is_active=True
+                    ).aggregate(total=Sum('monthly_installment'))['total'] or Decimal('0')
 
-            salary, created = FactorySalary.objects.get_or_create(
-                employee=emp, month=month, year=year,
-                defaults={'basic_salary': emp.basic_salary}
-            )
-            if salary.is_finalized:
-                continue
-            salary.basic_salary = emp.basic_salary
-            salary.present_days = present_count
-            salary.regular_hours = total_regular
-            salary.overtime_hours = total_ot
-            salary.loan_deduction = loan_ded
-            salary.calculate()
-            salary.save()
-            count += 1
-        messages.success(request, f'Salary calculated for {count} employees for {calendar.month_name[month]} {year}!')
-        return redirect(f'/factory/salary/?month={month}&year={year}')
+                    salary, created = FactorySalary.objects.get_or_create(
+                        employee=emp, month=month, year=year,
+                        defaults={'basic_salary': emp.basic_salary}
+                    )
+                    if salary.is_finalized:
+                        continue
+                    salary.basic_salary = emp.basic_salary
+                    salary.present_days = present_count
+                    salary.regular_hours = total_regular
+                    salary.overtime_hours = total_ot
+                    salary.loan_deduction = loan_ded
+                    salary.calculate()
+                    salary.save()
+                    count += 1
+                except Exception as e:
+                    logger.error(f"Error calculating salary for {emp.name}: {e}")
+                    continue
+            messages.success(request, f'Salary calculated for {count} employees for {calendar.month_name[month]} {year}!')
+            return redirect(f'/factory/salary/?month={month}&year={year}')
+        except Exception as e:
+            logger.error(f"Salary calculation error: {e}")
+            messages.error(request, 'An error occurred during salary calculation. Please try again.')
+            return redirect('factory:salary_report')
     return render(request, 'factory/salary_calculate.html', {
         'months': [(i, calendar.month_name[i]) for i in range(1, 13)],
         'current_month': date.today().month, 'current_year': date.today().year,
@@ -586,17 +598,26 @@ def salary_delete(request, pk):
 def salary_finalize(request):
     """Finalize month: process loan installments, handle negative balances."""
     if request.method == 'POST':
-        month = int(request.POST.get('month', date.today().month))
-        year = int(request.POST.get('year', date.today().year))
-        salaries = FactorySalary.objects.filter(
-            month=month, year=year, is_finalized=False
-        ).select_related('employee')
-        processed = 0
-        for salary in salaries:
-            _finalize_single_salary(salary)
-            processed += 1
-        messages.success(request, f'Finalized salary for {processed} employees!')
-        return redirect(f'/factory/salary/?month={month}&year={year}')
+        try:
+            month = int(request.POST.get('month', date.today().month))
+            year = int(request.POST.get('year', date.today().year))
+            salaries = FactorySalary.objects.filter(
+                month=month, year=year, is_finalized=False
+            ).select_related('employee')
+            processed = 0
+            for salary in salaries:
+                try:
+                    _finalize_single_salary(salary)
+                    processed += 1
+                except Exception as e:
+                    logger.error(f"Error finalizing salary for {salary.employee.name}: {e}")
+                    continue
+            messages.success(request, f'Finalized salary for {processed} employees!')
+            return redirect(f'/factory/salary/?month={month}&year={year}')
+        except Exception as e:
+            logger.error(f"Salary finalization error: {e}")
+            messages.error(request, 'An error occurred during salary finalization. Please try again.')
+            return redirect('factory:salary_report')
     return redirect('factory:salary_report')
 
 

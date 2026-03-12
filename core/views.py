@@ -7,6 +7,9 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from datetime import date, timedelta
 from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # ─── Authentication Views ────────────────────────────────────
@@ -241,3 +244,20 @@ def dashboard(request):
         'today': today,
     }
     return render(request, 'core/dashboard.html', context)
+
+
+# ─── Error Handlers ──────────────────────────────────────────
+
+def error_404(request, exception):
+    logger.warning(f"404 error: {request.path}")
+    return render(request, '404.html', status=404)
+
+
+def error_500(request):
+    logger.error(f"500 error on {request.path}")
+    return render(request, '500.html', status=500)
+
+
+def error_403(request, exception):
+    logger.warning(f"403 error: {request.path}")
+    return render(request, '403.html', status=403)

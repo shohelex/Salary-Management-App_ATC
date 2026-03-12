@@ -1,6 +1,9 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Depot(models.Model):
@@ -48,11 +51,17 @@ class DepotEmployee(models.Model):
 
     @property
     def daily_rate(self):
-        return self.basic_salary / Decimal('30')
+        try:
+            return self.basic_salary / Decimal('30') if self.basic_salary else Decimal('0')
+        except Exception:
+            return Decimal('0')
 
     @property
     def bonus_amount(self):
-        return self.basic_salary / Decimal('2')
+        try:
+            return self.basic_salary / Decimal('2') if self.basic_salary else Decimal('0')
+        except Exception:
+            return Decimal('0')
 
     @property
     def total_loan_balance(self):
@@ -156,9 +165,13 @@ class DepotSalary(models.Model):
         return f"{self.employee.name} - {self.month}/{self.year}"
 
     def calculate(self):
-        self.daily_rate = self.basic_salary / Decimal('30')
-        self.day_salary = self.daily_rate * Decimal(str(self.present_days))
-        self.calculated_salary = self.day_salary + self.total_night_bills
-        self.net_salary = (self.calculated_salary + self.bonus
-                          - self.loan_deduction)
-        self.balance = self.net_salary - self.payments_made
+        try:
+            self.daily_rate = self.basic_salary / Decimal('30') if self.basic_salary else Decimal('0')
+            self.day_salary = self.daily_rate * Decimal(str(self.present_days))
+            self.calculated_salary = self.day_salary + self.total_night_bills
+            self.net_salary = (self.calculated_salary + self.bonus
+                              - self.loan_deduction)
+            self.balance = self.net_salary - self.payments_made
+        except Exception as e:
+            logger.error(f"Error calculating salary for {self.employee}: {e}")
+            raise

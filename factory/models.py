@@ -1,6 +1,9 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class FactoryEmployee(models.Model):
@@ -26,11 +29,17 @@ class FactoryEmployee(models.Model):
 
     @property
     def hourly_rate(self):
-        return self.basic_salary / Decimal('240')
+        try:
+            return self.basic_salary / Decimal('240') if self.basic_salary else Decimal('0')
+        except Exception:
+            return Decimal('0')
 
     @property
     def bonus_amount(self):
-        return self.basic_salary / Decimal('2')
+        try:
+            return self.basic_salary / Decimal('2') if self.basic_salary else Decimal('0')
+        except Exception:
+            return Decimal('0')
 
     @property
     def total_loan_balance(self):
@@ -206,13 +215,17 @@ class FactorySalary(models.Model):
         return f"{self.employee.name} - {self.month}/{self.year} (৳{self.net_salary:,.0f})"
 
     def calculate(self):
-        self.hourly_rate = self.basic_salary / Decimal('240')
-        self.total_hours = self.regular_hours + self.overtime_hours
-        self.calculated_salary = self.hourly_rate * self.total_hours
-        self.net_salary = (self.calculated_salary + self.bonus
-                          - self.loan_deduction)
-        total_wp = WeeklyPayment.objects.filter(
-            employee=self.employee, month=self.month, year=self.year
-        ).aggregate(total=models.Sum('amount'))['total'] or Decimal('0')
-        self.total_weekly_payments = total_wp
-        self.balance = self.net_salary - self.total_weekly_payments
+        try:
+            self.hourly_rate = self.basic_salary / Decimal('240') if self.basic_salary else Decimal('0')
+            self.total_hours = self.regular_hours + self.overtime_hours
+            self.calculated_salary = self.hourly_rate * self.total_hours
+            self.net_salary = (self.calculated_salary + self.bonus
+                              - self.loan_deduction)
+            total_wp = WeeklyPayment.objects.filter(
+                employee=self.employee, month=self.month, year=self.year
+            ).aggregate(total=models.Sum('amount'))['total'] or Decimal('0')
+            self.total_weekly_payments = total_wp
+            self.balance = self.net_salary - self.total_weekly_payments
+        except Exception as e:
+            logger.error(f"Error calculating salary for {self.employee}: {e}")
+            raise

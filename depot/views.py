@@ -4,6 +4,9 @@ from django.db.models import Sum, Count, Q
 from datetime import date
 from decimal import Decimal
 import calendar
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .models import Depot, DepotEmployee, DepotAttendance, DepotSalary, DepotLoan
 from .forms import DepotForm, DepotEmployeeForm, DepotSalaryEditForm, DepotLoanForm, DepotAttendanceEditForm, DepotApplyIncrementForm
@@ -332,35 +335,44 @@ def salary_report(request):
 
 def salary_calculate(request):
     if request.method == 'POST':
-        month = int(request.POST.get('month', date.today().month))
-        year = int(request.POST.get('year', date.today().year))
-        employees = DepotEmployee.objects.filter(is_active=True)
-        count = 0
-        for emp in employees:
-            att = DepotAttendance.objects.filter(employee=emp, date__month=month, date__year=year)
-            present_count = att.filter(Q(status='present') | Q(status='half_day')).count()
-            half_days = att.filter(status='half_day').count()
-            effective_days = present_count - (half_days * Decimal('0.5'))
-            total_night = att.aggregate(total=Sum('night_bill'))['total'] or Decimal('0')
-            loan_ded = DepotLoan.objects.filter(
-                employee=emp, is_active=True
-            ).aggregate(total=Sum('monthly_installment'))['total'] or Decimal('0')
+        try:
+            month = int(request.POST.get('month', date.today().month))
+            year = int(request.POST.get('year', date.today().year))
+            employees = DepotEmployee.objects.filter(is_active=True)
+            count = 0
+            for emp in employees:
+                try:
+                    att = DepotAttendance.objects.filter(employee=emp, date__month=month, date__year=year)
+                    present_count = att.filter(Q(status='present') | Q(status='half_day')).count()
+                    half_days = att.filter(status='half_day').count()
+                    effective_days = present_count - (half_days * Decimal('0.5'))
+                    total_night = att.aggregate(total=Sum('night_bill'))['total'] or Decimal('0')
+                    loan_ded = DepotLoan.objects.filter(
+                        employee=emp, is_active=True
+                    ).aggregate(total=Sum('monthly_installment'))['total'] or Decimal('0')
 
-            salary, created = DepotSalary.objects.get_or_create(
-                employee=emp, month=month, year=year,
-                defaults={'basic_salary': emp.basic_salary}
-            )
-            if salary.is_finalized:
-                continue
-            salary.basic_salary = emp.basic_salary
-            salary.present_days = int(effective_days)
-            salary.total_night_bills = total_night
-            salary.loan_deduction = loan_ded
-            salary.calculate()
-            salary.save()
-            count += 1
-        messages.success(request, f'Salary calculated for {count} depot employees!')
-        return redirect(f'/depot/salary/?month={month}&year={year}')
+                    salary, created = DepotSalary.objects.get_or_create(
+                        employee=emp, month=month, year=year,
+                        defaults={'basic_salary': emp.basic_salary}
+                    )
+                    if salary.is_finalized:
+                        continue
+                    salary.basic_salary = emp.basic_salary
+                    salary.present_days = int(effective_days)
+                    salary.total_night_bills = total_night
+                    salary.loan_deduction = loan_ded
+                    salary.calculate()
+                    salary.save()
+                    count += 1
+                except Exception as e:
+                    logger.error(f"Error calculating salary for {emp.name}: {e}")
+                    continue
+            messages.success(request, f'Salary calculated for {count} depot employees!')
+            return redirect(f'/depot/salary/?month={month}&year={year}')
+        except Exception as e:
+            logger.error(f"Depot salary calculation error: {e}")
+            messages.error(request, 'An error occurred during salary calculation. Please try again.')
+            return redirect('depot:salary_report')
     return render(request, 'depot/salary_calculate.html', {
         'months': [(i, calendar.month_name[i]) for i in range(1, 13)],
         'current_month': date.today().month, 'current_year': date.today().year,
@@ -397,37 +409,46 @@ def salary_delete(request, pk):
 
 def salary_finalize(request):
     if request.method == 'POST':
-        month = int(request.POST.get('month', date.today().month))
-        year = int(request.POST.get('year', date.today().year))
-        salaries = DepotSalary.objects.filter(
-            month=month, year=year, is_finalized=False
-        ).select_related('employee')
-        processed = 0
-        for salary in salaries:
-            if salary.loan_deduction > 0:
-                active_loans = DepotLoan.objects.filter(
-                    employee=salary.employee, is_active=True
-                ).order_by('loan_date')
-                remaining = salary.loan_deduction
-                for loan in active_loans:
-                    if remaining <= 0:
-                        break
-                    payment = min(remaining, loan.remaining_balance)
-                    loan.make_payment(payment)
-                    remaining -= payment
-            if salary.balance < 0:
-                excess = abs(salary.balance)
-                DepotLoan.objects.create(
-                    employee=salary.employee, loan_date=date.today(),
-                    loan_amount=excess, monthly_installment=excess,
-                    remaining_balance=excess, is_active=True,
-                    remarks=f"Excess from {calendar.month_name[month]} {year}",
-                )
-            salary.is_finalized = True
-            salary.save()
-            processed += 1
-        messages.success(request, f'Finalized salary for {processed} depot employees!')
-        return redirect(f'/depot/salary/?month={month}&year={year}')
+        try:
+            month = int(request.POST.get('month', date.today().month))
+            year = int(request.POST.get('year', date.today().year))
+            salaries = DepotSalary.objects.filter(
+                month=month, year=year, is_finalized=False
+            ).select_related('employee')
+            processed = 0
+            for salary in salaries:
+                try:
+                    if salary.loan_deduction > 0:
+                        active_loans = DepotLoan.objects.filter(
+                            employee=salary.employee, is_active=True
+                        ).order_by('loan_date')
+                        remaining = salary.loan_deduction
+                        for loan in active_loans:
+                            if remaining <= 0:
+                                break
+                            payment = min(remaining, loan.remaining_balance)
+                            loan.make_payment(payment)
+                            remaining -= payment
+                    if salary.balance < 0:
+                        excess = abs(salary.balance)
+                        DepotLoan.objects.create(
+                            employee=salary.employee, loan_date=date.today(),
+                            loan_amount=excess, monthly_installment=excess,
+                            remaining_balance=excess, is_active=True,
+                            remarks=f"Excess from {calendar.month_name[month]} {year}",
+                        )
+                    salary.is_finalized = True
+                    salary.save()
+                    processed += 1
+                except Exception as e:
+                    logger.error(f"Error finalizing salary for {salary.employee.name}: {e}")
+                    continue
+            messages.success(request, f'Finalized salary for {processed} depot employees!')
+            return redirect(f'/depot/salary/?month={month}&year={year}')
+        except Exception as e:
+            logger.error(f"Depot salary finalization error: {e}")
+            messages.error(request, 'An error occurred during salary finalization. Please try again.')
+            return redirect('depot:salary_report')
     return redirect('depot:salary_report')
 
 
