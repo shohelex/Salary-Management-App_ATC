@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}<i class="fas fa-shopping-cart me-2"></i>{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Supplier *</label>
+                            {{ form.supplier }}
+                            {% if form.supplier.errors %}<div class="text-danger small">{{ form.supplier.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Date *</label>
+                            {{ form.date }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Invoice Number</label>
+                            {{ form.invoice_number }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Product Type *</label>
+                            {{ form.product_type }}
+                            {% if form.product_type.errors %}<div class="text-danger small">{{ form.product_type.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Unit Type</label>
+                            {{ form.unit_type }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Unit Price (৳)</label>
+                            {{ form.unit_price }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Quantity</label>
+                            {{ form.quantity }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Labor Cost (৳)</label>
+                            {{ form.labor_cost }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Transport Cost (৳)</label>
+                            {{ form.transport_cost }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Calculated Total</label>
+                            <div class="form-control bg-light" id="calcTotal">৳0.00</div>
+                            <small class="text-muted">= (Unit Price × Qty) + Labor + Transport</small>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-check mt-4">
+                                {{ form.is_paid }}
+                                <label class="form-check-label fw-bold">Paid Instantly</label>
+                            </div>
+                            <small class="text-muted">If checked, a payment will be auto-recorded</small>
+                        </div>
+                        <div class="col-md-4" id="paidAmountField" style="display: none;">
+                            <label class="form-label fw-bold">Paid Amount (৳)</label>
+                            {{ form.paid_amount }}
+                            <small class="text-muted">Leave blank to pay the full total</small>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Remarks</label>
+                            {{ form.remarks }}
+                        </div>
+
+                        <div class="col-12">
+                            <hr>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Purchase</button>
+                            <a href="{% url 'suppliers:purchase_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function calcTotal() {
+    const unitPrice = parseFloat(document.querySelector('[name="unit_price"]').value) || 0;
+    const qty = parseFloat(document.querySelector('[name="quantity"]').value) || 0;
+    const labor = parseFloat(document.querySelector('[name="labor_cost"]').value) || 0;
+    const transport = parseFloat(document.querySelector('[name="transport_cost"]').value) || 0;
+    const total = (unitPrice * qty) + labor + transport;
+    document.getElementById('calcTotal').textContent = '৳' + total.toLocaleString('en-BD', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+document.querySelectorAll('[name="unit_price"], [name="quantity"], [name="labor_cost"], [name="transport_cost"]').forEach(el => {
+    el.addEventListener('input', calcTotal);
+});
+calcTotal();
+
+// Toggle paid amount field
+const isPaidCheck = document.querySelector('[name="is_paid"]');
+const paidAmountField = document.getElementById('paidAmountField');
+function togglePaidAmount() {
+    paidAmountField.style.display = isPaidCheck.checked ? 'block' : 'none';
+}
+isPaidCheck.addEventListener('change', togglePaidAmount);
+togglePaidAmount();
+</script>
+{% endblock %}

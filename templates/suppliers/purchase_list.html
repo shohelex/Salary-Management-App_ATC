@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Purchase Log{% endblock %}
+{% block page_title %}<i class="fas fa-shopping-cart me-2"></i>Purchase Log{% endblock %}
+
+{% block content %}
+<!-- Print Header -->
+<div class="print-header">
+    <h1>Asian Trade Corporation</h1>
+    <p class="print-subtitle">Business Management System</p>
+    <p class="print-report-title">Purchase Log</p>
+    <p class="print-date-info">{% if start_date %}From: {{ start_date }} {% endif %}{% if end_date %}To: {{ end_date }} {% endif %}| Total: ৳{{ total|floatformat:0|intcomma }} | Printed: {% now "d F Y, h:i A" %}</p>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+        <select name="supplier" class="form-select form-select-sm" style="width: 180px;" onchange="this.form.submit()">
+            <option value="">All Suppliers</option>
+            {% for s in suppliers %}
+            <option value="{{ s.pk }}" {% if selected_supplier == s.pk|stringformat:"d" %}selected{% endif %}>{{ s.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="product" value="{{ selected_product }}" class="form-control form-control-sm" style="width: 160px;" placeholder="Product type...">
+        <input type="date" name="start" value="{{ start_date }}" class="form-control form-control-sm" style="width: 160px;" onchange="this.form.submit()">
+        <input type="date" name="end" value="{{ end_date }}" class="form-control form-control-sm" style="width: 160px;" onchange="this.form.submit()">
+        <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i></button>
+    </form>
+    <div class="d-flex gap-2">
+        <button class="btn btn-print btn-sm" onclick="window.print()">
+            <i class="fas fa-print me-1"></i> Print
+        </button>
+        <a href="{% url 'suppliers:purchase_add' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Add Purchase
+        </a>
+    </div>
+</div>
+
+<!-- Cost Breakdown Summary -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-info text-white shadow-sm">
+            <div class="card-body text-center">
+                <h6>Total Cost</h6>
+                <h4>৳{{ total|floatformat:0|intcomma }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Material Cost</h6>
+                <h4>৳{{ total_material|floatformat:0|intcomma }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Labor Cost</h6>
+                <h4>৳{{ total_labor|floatformat:0|intcomma }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Transport Cost</h6>
+                <h4>৳{{ total_transport|floatformat:0|intcomma }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Purchase Table -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Supplier</th>
+                        <th>Invoice</th>
+                        <th>Product</th>
+                        <th>Unit Price</th>
+                        <th>Qty</th>
+                        <th>Material</th>
+                        <th>Labor</th>
+                        <th>Transport</th>
+                        <th>Total</th>
+                        <th>Paid?</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in purchases %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ p.date|date:"d M Y" }}</td>
+                        <td>
+                            <a href="{% url 'suppliers:supplier_detail' p.supplier.pk %}">
+                                {{ p.supplier.name }}
+                            </a>
+                        </td>
+                        <td><span class="badge bg-light text-dark">{{ p.invoice_number|default:"-" }}</span></td>
+                        <td>{{ p.product_type }}</td>
+                        <td>৳{{ p.unit_price|floatformat:2|intcomma }}/{{ p.get_unit_type_display }}</td>
+                        <td>{{ p.quantity|floatformat:2 }}</td>
+                        <td>৳{{ p.material_cost|floatformat:0|intcomma }}</td>
+                        <td>৳{{ p.labor_cost|floatformat:0|intcomma }}</td>
+                        <td>৳{{ p.transport_cost|floatformat:0|intcomma }}</td>
+                        <td class="fw-bold">৳{{ p.total_cost|floatformat:0|intcomma }}</td>
+                        <td>
+                            {% if p.is_paid %}
+                            <span class="badge bg-success">Paid</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Unpaid</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'suppliers:purchase_edit' p.pk %}" class="btn btn-outline-warning"><i class="fas fa-edit"></i></a>
+                                <a href="{% url 'suppliers:purchase_delete' p.pk %}" class="btn btn-outline-danger"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="13" class="text-center py-5 text-muted">
+                        <i class="fas fa-shopping-cart fa-3x mb-3 d-block"></i>No purchases found
+                    </td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

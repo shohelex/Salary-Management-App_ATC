@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'depot.apps.DepotConfig',
     'expenses.apps.ExpensesConfig',
     'finance.apps.FinanceConfig',
+    'suppliers.apps.SuppliersConfig',
 ]
 
 MIDDLEWARE = [

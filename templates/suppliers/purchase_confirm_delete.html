@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Delete Purchase{% endblock %}
+{% block page_title %}<i class="fas fa-exclamation-triangle text-danger me-2"></i>Delete Purchase{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body text-center p-5">
+                <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+                <h4>Delete this purchase?</h4>
+                <p class="text-muted">{{ purchase.date|date:"d M Y" }} — {{ purchase.supplier.name }}</p>
+                <p>{{ purchase.product_type }} ({{ purchase.quantity }} {{ purchase.get_unit_type_display }})</p>
+                <p class="fw-bold">৳{{ purchase.total_cost|floatformat:0|intcomma }}</p>
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger me-2"><i class="fas fa-trash me-1"></i>Delete</button>
+                    <a href="{% url 'suppliers:purchase_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

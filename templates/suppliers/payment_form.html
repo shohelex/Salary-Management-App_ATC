@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}<i class="fas fa-money-bill me-2"></i>{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                {% if suppliers_with_balance %}
+                <div class="alert alert-info small mb-4">
+                    <i class="fas fa-info-circle me-1"></i> <strong>Outstanding balances:</strong>
+                    <div class="d-flex flex-wrap gap-2 mt-1">
+                        {% for s in suppliers_with_balance %}
+                        <span class="badge bg-danger">{{ s.name }}: ৳{{ s.unpaid|floatformat:0|intcomma }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Supplier *</label>
+                            {{ form.supplier }}
+                            {% if form.supplier.errors %}<div class="text-danger small">{{ form.supplier.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Date *</label>
+                            {{ form.date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Amount (৳) *</label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}<div class="text-danger small">{{ form.amount.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Payment Method</label>
+                            {{ form.payment_method }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Reference / Transaction ID</label>
+                            {{ form.reference }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Remarks</label>
+                            {{ form.remarks }}
+                        </div>
+                        <div class="col-12">
+                            <hr>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-check me-1"></i> Record Payment</button>
+                            <a href="{% url 'suppliers:payment_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

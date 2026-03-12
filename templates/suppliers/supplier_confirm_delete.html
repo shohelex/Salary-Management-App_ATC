@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Deactivate Supplier{% endblock %}
+{% block page_title %}<i class="fas fa-exclamation-triangle text-danger me-2"></i>Deactivate Supplier{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body text-center p-5">
+                <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+                <h4>Deactivate this supplier?</h4>
+                <p class="text-muted">{{ supplier.name }}</p>
+                {% if supplier.total_unpaid > 0 %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle me-1"></i>
+                    This supplier has an outstanding balance of <strong>৳{{ supplier.total_unpaid|floatformat:0|intcomma }}</strong>
+                </div>
+                {% endif %}
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger me-2"><i class="fas fa-ban me-1"></i>Deactivate</button>
+                    <a href="{% url 'suppliers:supplier_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
