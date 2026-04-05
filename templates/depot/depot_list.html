@@ -15,7 +15,7 @@
     <p class="print-date-info">Total: {{ depots.count }} Depots | Printed: {% now "d F Y, h:i A" %}</p>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
     <span class="badge bg-info fs-6">{{ depots.count }} Depots</span>
     <div class="d-flex gap-2">
         <button class="btn btn-print btn-sm" onclick="window.print()">

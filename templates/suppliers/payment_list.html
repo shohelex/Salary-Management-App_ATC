@@ -13,7 +13,7 @@
     <p class="print-date-info">{% if start_date %}From: {{ start_date }} {% endif %}{% if end_date %}To: {{ end_date }} {% endif %}| Total: ৳{{ total|floatformat:0|intcomma }} | Printed: {% now "d F Y, h:i A" %}</p>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
     <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
         <select name="supplier" class="form-select form-select-sm" style="width: 180px;" onchange="this.form.submit()">
             <option value="">All Suppliers</option>
@@ -59,7 +59,7 @@
                         <th>Method</th>
                         <th>Reference</th>
                         <th>Remarks</th>
-                        <th>Actions</th>
+                        <th class="no-print">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -76,7 +76,7 @@
                         <td>{{ p.payment_method|default:"-" }}</td>
                         <td>{{ p.reference|default:"-" }}</td>
                         <td>{{ p.remarks|default:"-"|truncatewords:10 }}</td>
-                        <td>
+                        <td class="no-print">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'suppliers:payment_edit' p.pk %}" class="btn btn-outline-warning"><i class="fas fa-edit"></i></a>
                                 <a href="{% url 'suppliers:payment_delete' p.pk %}" class="btn btn-outline-danger"><i class="fas fa-trash"></i></a>

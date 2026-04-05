@@ -355,8 +355,13 @@ body {
 @media print {
     /* Hide navigation and UI elements */
     .sidebar, .top-navbar, .sidebar-toggle,
-    .no-print, .btn, form, .alert,
+    .no-print, .btn, .alert,
     .btn-group, .card-header a, a.btn {
+        display: none !important;
+    }
+
+    /* Hide inline forms but keep structural forms visible */
+    form.d-flex, form.d-inline {
         display: none !important;
     }
 
@@ -406,15 +411,14 @@ body {
     /* Show print footer */
     .print-footer {
         display: block !important;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        position: relative;
         text-align: center;
         font-size: 9px;
         color: #999;
         border-top: 1px solid #ddd;
-        padding-top: 5px;
+        margin-top: 60px;
+        padding-top: 10px;
+        page-break-inside: avoid;
     }
 
     /* Layout */
@@ -487,6 +491,12 @@ body {
         background: #f8f8f8 !important;
     }
 
+    /* Ensure table-responsive displays correctly in print */
+    .table-responsive {
+        overflow: visible !important;
+        display: block !important;
+    }
+
     /* Links as plain text */
     a {
         color: #000 !important;
@@ -540,6 +550,9 @@ body {
     }
 
     /* Text colors for print */
+    .text-muted {
+        color: #333 !important;
+    }
     .text-success {
         color: #000 !important;
     }
@@ -549,6 +562,14 @@ body {
     }
     .fw-bold {
         font-weight: 700;
+    }
+
+    /* Ensure forms wrapping tables are visible */
+    form {
+        display: block !important;
+    }
+    form.d-flex, form.d-inline {
+        display: none !important;
     }
 
     /* Hide charts */
@@ -568,14 +589,13 @@ body {
     }
 
     /* Actions column */
-    .col-actions, th:last-child, td:last-child {
+    .col-actions {
         display: none !important;
     }
 
-    /* Re-show last column for tables that need it */
-    .print-show-last th:last-child,
-    .print-show-last td:last-child {
-        display: table-cell !important;
+    /* Print-only no-data message */
+    .print-no-data {
+        display: block !important;
     }
 
     /* Signature area */
@@ -599,7 +619,11 @@ body {
     }
 }
 
-/* Print signatures - hidden on screen */
+/* Print-only elements - hidden on screen */
 .print-signatures {
+    display: none;
+}
+
+.print-no-data {
     display: none;
 }

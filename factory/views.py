@@ -479,14 +479,14 @@ def performance_delete(request, pk):
 # ─── Salary Views ────────────────────────────────────────────
 
 def salary_report(request):
-    month = request.GET.get('month', str(date.today().month))
-    year = request.GET.get('year', str(date.today().year))
+    try:
+        month = int(request.GET.get('month', date.today().month))
+        year = int(request.GET.get('year', date.today().year))
+    except (ValueError, TypeError):
+        month, year = date.today().month, date.today().year
+    
     start_month = request.GET.get('start_month', '')
     end_month = request.GET.get('end_month', '')
-    try:
-        month, year = int(month), int(year)
-    except ValueError:
-        month, year = date.today().month, date.today().year
 
     if start_month and end_month:
         try:

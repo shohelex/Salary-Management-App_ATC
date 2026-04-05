@@ -60,7 +60,7 @@
             </div>
         </div>
         <!-- Quick Actions -->
-        <div class="d-flex gap-2 mt-3">
+        <div class="d-flex gap-2 mt-3 no-print">
             <a href="{% url 'suppliers:purchase_add' %}" class="btn btn-info text-white btn-sm"><i class="fas fa-shopping-cart me-1"></i> New Purchase</a>
             <a href="{% url 'suppliers:supplier_payment' supplier.pk %}" class="btn btn-success btn-sm"><i class="fas fa-money-bill me-1"></i> Make Payment</a>
             <button class="btn btn-print btn-sm" onclick="window.print()"><i class="fas fa-print me-1"></i> Print</button>
@@ -146,7 +146,7 @@
                                 <th>Transport</th>
                                 <th>Total</th>
                                 <th>Paid?</th>
-                                <th>Actions</th>
+                                <th class="no-print">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -169,7 +169,7 @@
                                     <span class="badge bg-warning text-dark">Unpaid</span>
                                     {% endif %}
                                 </td>
-                                <td>
+                                <td class="no-print">
                                     <div class="btn-group btn-group-sm">
                                         <a href="{% url 'suppliers:purchase_edit' p.pk %}" class="btn btn-outline-warning"><i class="fas fa-edit"></i></a>
                                         <a href="{% url 'suppliers:purchase_delete' p.pk %}" class="btn btn-outline-danger"><i class="fas fa-trash"></i></a>
@@ -200,7 +200,7 @@
                                 <th>Method</th>
                                 <th>Reference</th>
                                 <th>Remarks</th>
-                                <th>Actions</th>
+                                <th class="no-print">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -212,7 +212,7 @@
                                 <td>{{ p.payment_method|default:"-" }}</td>
                                 <td>{{ p.reference|default:"-" }}</td>
                                 <td>{{ p.remarks|default:"-"|truncatewords:10 }}</td>
-                                <td>
+                                <td class="no-print">
                                     <div class="btn-group btn-group-sm">
                                         <a href="{% url 'suppliers:payment_edit' p.pk %}" class="btn btn-outline-warning"><i class="fas fa-edit"></i></a>
                                         <a href="{% url 'suppliers:payment_delete' p.pk %}" class="btn btn-outline-danger"><i class="fas fa-trash"></i></a>

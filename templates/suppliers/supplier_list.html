@@ -29,7 +29,7 @@
                         <th>Total Paid</th>
                         <th>Outstanding</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th class="no-print">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -55,7 +55,7 @@
                             <span class="badge bg-secondary">Inactive</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="no-print">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'suppliers:supplier_detail' s.pk %}" class="btn btn-outline-primary" title="View"><i class="fas fa-eye"></i></a>
                                 <a href="{% url 'suppliers:supplier_payment' s.pk %}" class="btn btn-outline-success" title="Pay"><i class="fas fa-money-bill"></i></a>

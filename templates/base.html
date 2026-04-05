@@ -129,6 +129,32 @@
                     </a>
                 </li>
 
+                <li class="nav-section">SUPPLIERS</li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'suppliers:supplier_dashboard' == request.resolver_match.view_name %}active{% endif %}" href="{% url 'suppliers:supplier_dashboard' %}">
+                        <i class="fas fa-truck-loading"></i>
+                        <span>Supplier Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'suppliers:supplier' in request.resolver_match.view_name %}active{% endif %}" href="{% url 'suppliers:supplier_list' %}">
+                        <i class="fas fa-people-carry-box"></i>
+                        <span>Suppliers</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'suppliers:purchase' in request.resolver_match.view_name %}active{% endif %}" href="{% url 'suppliers:purchase_list' %}">
+                        <i class="fas fa-cart-shopping"></i>
+                        <span>Purchases</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'suppliers:payment' in request.resolver_match.view_name %}active{% endif %}" href="{% url 'suppliers:payment_list' %}">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Payments</span>
+                    </a>
+                </li>
+
                 {% if request.user.is_superuser %}
                 <li class="nav-section">ADMINISTRATION</li>
                 <li class="nav-item">

@@ -126,7 +126,7 @@
             <!-- Attendance Tab -->
             <div class="tab-pane fade show active p-3" id="attendance">
                 <table class="table table-sm table-hover">
-                    <thead><tr><th>Date</th><th>Status</th><th>Working Hrs</th><th>OT Hrs</th><th>Remarks</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Date</th><th>Status</th><th>Working Hrs</th><th>OT Hrs</th><th>Remarks</th><th class="no-print">Actions</th></tr></thead>
                     <tbody>
                     {% for att in recent_attendance %}
                     <tr>
@@ -140,7 +140,7 @@
                         <td>{{ att.working_hours|floatformat:1 }}</td>
                         <td>{% if att.overtime_hours > 0 %}<span class="text-info fw-bold">{{ att.overtime_hours|floatformat:1 }}</span>{% else %}0{% endif %}</td>
                         <td>{{ att.remarks|default:"-" }}</td>
-                        <td>
+                        <td class="no-print">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'factory:attendance_edit' att.pk %}" class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
                                 <a href="{% url 'factory:attendance_delete' att.pk %}" class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>
@@ -157,14 +157,14 @@
             <!-- Weekly Payments Tab -->
             <div class="tab-pane fade p-3" id="weekly">
                 <table class="table table-sm table-hover">
-                    <thead><tr><th>Date</th><th>Amount</th><th>Remarks</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Date</th><th>Amount</th><th>Remarks</th><th class="no-print">Actions</th></tr></thead>
                     <tbody>
                     {% for wp in recent_payments %}
                     <tr>
                         <td>{{ wp.payment_date|date:"d M Y" }}</td>
                         <td class="fw-bold text-success">৳{{ wp.amount|floatformat:0|intcomma }}</td>
                         <td>{{ wp.remarks|default:"-" }}</td>
-                        <td>
+                        <td class="no-print">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'factory:weekly_payment_edit' wp.pk %}" class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
                                 <a href="{% url 'factory:weekly_payment_delete' wp.pk %}" class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>
@@ -181,7 +181,7 @@
             <!-- Salary History Tab -->
             <div class="tab-pane fade p-3" id="salary">
                 <table class="table table-sm table-hover">
-                    <thead><tr><th>Period</th><th>Earned</th><th>Net Salary</th><th>Weekly Paid</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Period</th><th>Earned</th><th>Net Salary</th><th>Weekly Paid</th><th>Balance</th><th>Status</th><th class="no-print">Actions</th></tr></thead>
                     <tbody>
                     {% for s in recent_salary %}
                     <tr>
@@ -196,7 +196,7 @@
                             {% if s.is_finalized %}<span class="badge bg-success">Finalized</span>
                             {% else %}<span class="badge bg-warning">Pending</span>{% endif %}
                         </td>
-                        <td>
+                        <td class="no-print">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'factory:salary_edit' s.pk %}" class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
                                 <a href="{% url 'factory:salary_delete' s.pk %}" class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>
@@ -234,7 +234,7 @@
             <!-- Loans Tab -->
             <div class="tab-pane fade p-3" id="loans">
                 <table class="table table-sm table-hover">
-                    <thead><tr><th>Date</th><th>Loan Amount</th><th>Installment</th><th>Paid</th><th>Remaining</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Date</th><th>Loan Amount</th><th>Installment</th><th>Paid</th><th>Remaining</th><th>Status</th><th class="no-print">Actions</th></tr></thead>
                     <tbody>
                     {% for loan in all_loans %}
                     <tr>
@@ -249,7 +249,7 @@
                             {% if loan.is_active %}<span class="badge bg-warning">Active</span>
                             {% else %}<span class="badge bg-success">Paid Off</span>{% endif %}
                         </td>
-                        <td>
+                        <td class="no-print">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'factory:loan_edit' loan.pk %}" class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
                                 <a href="{% url 'factory:loan_delete' loan.pk %}" class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>

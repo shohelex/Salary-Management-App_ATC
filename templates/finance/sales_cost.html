@@ -14,7 +14,7 @@
 </div>
 
 <!-- Filters -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
     <form method="get" class="d-flex align-items-center gap-2">
         <select name="month" class="form-select form-select-sm" style="width: 150px;" onchange="this.form.submit()">
             {% for m_val, m_name in months %}
@@ -96,7 +96,7 @@
             <div class="card-body p-0">
                 <table class="table table-sm table-hover mb-0">
                     <thead class="table-light">
-                        <tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th></th></tr>
+                        <tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th class="no-print"></th></tr>
                     </thead>
                     <tbody>
                         {% for rec in sales_records %}
@@ -105,7 +105,7 @@
                             <td>{{ rec.description|truncatewords:6 }}</td>
                             <td><span class="badge bg-light text-dark">{{ rec.get_category_display }}</span></td>
                             <td class="fw-bold text-success">৳{{ rec.amount|floatformat:0|intcomma }}</td>
-                            <td>
+                            <td class="no-print">
                                 <a href="{% url 'finance:sales_edit' rec.pk %}" class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></a>
                                 <a href="{% url 'finance:sales_delete' rec.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                             </td>
@@ -129,7 +129,7 @@
             <div class="card-body p-0">
                 <table class="table table-sm table-hover mb-0">
                     <thead class="table-light">
-                        <tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th></th></tr>
+                        <tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th class="no-print"></th></tr>
                     </thead>
                     <tbody>
                         {% for rec in cost_records %}
@@ -138,7 +138,7 @@
                             <td>{{ rec.description|truncatewords:6 }}</td>
                             <td><span class="badge bg-light text-dark">{{ rec.get_category_display }}</span></td>
                             <td class="fw-bold text-danger">৳{{ rec.amount|floatformat:0|intcomma }}</td>
-                            <td>
+                            <td class="no-print">
                                 <a href="{% url 'finance:cost_edit' rec.pk %}" class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></a>
                                 <a href="{% url 'finance:cost_delete' rec.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                             </td>

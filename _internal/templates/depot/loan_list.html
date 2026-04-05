@@ -13,7 +13,7 @@
     <p class="print-date-info">Total Outstanding: ৳{{ total_outstanding|floatformat:0|intcomma }} | Printed: {% now "d F Y, h:i A" %}</p>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
     <div>
         {% if show_all %}
         <a href="{% url 'depot:loan_list' %}" class="btn btn-outline-primary btn-sm">Show Active Only</a>
@@ -47,7 +47,7 @@
                     <th>Total Paid</th>
                     <th>Remaining</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th class="no-print">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -67,7 +67,7 @@
                         {% if loan.is_active %}<span class="badge bg-warning">Active</span>
                         {% else %}<span class="badge bg-success">Paid Off</span>{% endif %}
                     </td>
-                    <td>
+                    <td class="no-print">
                         <div class="btn-group btn-group-sm">
                             <a href="{% url 'depot:loan_edit' loan.pk %}" class="btn btn-outline-primary" title="Edit">
                                 <i class="fas fa-edit"></i>

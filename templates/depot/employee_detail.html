@@ -74,7 +74,7 @@
             <!-- Attendance Tab -->
             <div class="tab-pane fade show active p-3" id="attendance">
                 <table class="table table-sm table-hover">
-                    <thead><tr><th>Date</th><th>Status</th><th>Night Bill</th><th>Remarks</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Date</th><th>Status</th><th>Night Bill</th><th>Remarks</th><th class="no-print">Actions</th></tr></thead>
                     <tbody>
                     {% for att in recent_attendance %}
                     <tr>
@@ -87,7 +87,7 @@
                         </td>
                         <td>{% if att.night_bill > 0 %}৳{{ att.night_bill|floatformat:0|intcomma }}{% else %}-{% endif %}</td>
                         <td>{{ att.remarks|default:"-" }}</td>
-                        <td>
+                        <td class="no-print">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'depot:attendance_edit' att.pk %}" class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
                                 <a href="{% url 'depot:attendance_delete' att.pk %}" class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>
@@ -104,7 +104,7 @@
             <!-- Salary History Tab -->
             <div class="tab-pane fade p-3" id="salary">
                 <table class="table table-sm table-hover">
-                    <thead><tr><th>Period</th><th>Days</th><th>Night Bills</th><th>Earned</th><th>Net Salary</th><th>Paid</th><th>Balance</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Period</th><th>Days</th><th>Night Bills</th><th>Earned</th><th>Net Salary</th><th>Paid</th><th>Balance</th><th class="no-print">Actions</th></tr></thead>
                     <tbody>
                     {% for s in recent_salary %}
                     <tr>
@@ -117,7 +117,7 @@
                         <td class="{% if s.balance < 0 %}text-danger{% else %}text-success{% endif %} fw-bold">
                             ৳{{ s.balance|floatformat:0|intcomma }}
                         </td>
-                        <td>
+                        <td class="no-print">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'depot:salary_edit' s.pk %}" class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
                                 <a href="{% url 'depot:salary_delete' s.pk %}" class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>
@@ -134,7 +134,7 @@
             <!-- Loans Tab -->
             <div class="tab-pane fade p-3" id="loans">
                 <table class="table table-sm table-hover">
-                    <thead><tr><th>Date</th><th>Loan Amount</th><th>Installment</th><th>Paid</th><th>Remaining</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Date</th><th>Loan Amount</th><th>Installment</th><th>Paid</th><th>Remaining</th><th>Status</th><th class="no-print">Actions</th></tr></thead>
                     <tbody>
                     {% for loan in all_loans %}
                     <tr>
@@ -149,7 +149,7 @@
                             {% if loan.is_active %}<span class="badge bg-warning">Active</span>
                             {% else %}<span class="badge bg-success">Paid Off</span>{% endif %}
                         </td>
-                        <td>
+                        <td class="no-print">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'depot:loan_edit' loan.pk %}" class="btn btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
                                 <a href="{% url 'depot:loan_delete' loan.pk %}" class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>

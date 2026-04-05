@@ -6,7 +6,7 @@
 
 {% block content %}
 <!-- Filters -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
     <form method="get" class="d-flex align-items-center gap-2">
         <select name="month" class="form-select form-select-sm" style="width: 150px;" onchange="this.form.submit()">
             {% for m_val, m_name in months %}

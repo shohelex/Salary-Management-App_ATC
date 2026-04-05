@@ -4,6 +4,13 @@
 {% block title %}Factory Salary Report{% endblock %}
 {% block page_title %}Factory Salary Report{% endblock %}
 
+{% block extra_css %}
+<style>
+    @media screen { .print-only { display: none !important; } }
+    @media print { .print-only { display: block !important; } }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Print Header -->
 <div class="print-header">
@@ -13,7 +20,7 @@
     <p class="print-date-info">Month: {{ selected_month }}/{{ selected_year }} | Printed: {% now "d F Y, h:i A" %}</p>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
     <div>
         <form class="d-flex gap-2 flex-wrap" method="get">
             <select name="month" class="form-select form-select-sm" style="width:150px;">
@@ -71,7 +78,7 @@
                         <th>Weekly Paid</th>
                         <th>Balance</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th class="no-print">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -97,7 +104,7 @@
                             <span class="badge bg-warning">Pending</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="no-print">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'factory:salary_edit' s.pk %}" class="btn btn-outline-primary" title="Edit">
                                     <i class="fas fa-edit"></i>
@@ -116,7 +123,7 @@
                         <td>৳{{ total_salary|floatformat:0|intcomma }}</td>
                         <td>৳{{ total_weekly|floatformat:0|intcomma }}</td>
                         <td class="{% if total_balance < 0 %}text-danger{% else %}text-success{% endif %}">৳{{ total_balance|floatformat:0|intcomma }}</td>
-                        <td colspan="2"></td>
+                        <td></td><td class="no-print"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -124,10 +131,14 @@
     </div>
 </div>
 {% else %}
-<div class="text-center py-5">
+<div class="text-center py-5 no-print">
     <i class="fas fa-calculator fa-3x text-muted mb-3"></i>
     <h5 class="text-muted">No salary records for this period</h5>
     <a href="{% url 'factory:salary_calculate' %}" class="btn btn-primary mt-2">Calculate Salary</a>
+</div>
+<div class="print-only" style="text-align:center; padding:40px 0; font-size:13px; color:#333;">
+    <p><strong>Salary is being calculated from 1st {{ selected_month }}/{{ selected_year }} to till date.</strong></p>
+    <p>No finalized salary records available for this period yet.</p>
 </div>
 {% endif %}
 

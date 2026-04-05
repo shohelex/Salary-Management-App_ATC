@@ -66,11 +66,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Print button
-    const printBtns = document.querySelectorAll('.btn-print');
-    printBtns.forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            window.print();
-        });
-    });
+    // Print button - note: buttons use inline onclick for better reliability
+    // No additional listeners needed as buttons have onclick="window.print()" in templates
 });
