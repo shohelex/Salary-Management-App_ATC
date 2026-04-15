@@ -353,6 +353,22 @@ body {
 }
 
 @media print {
+    /* Fix occasional blank print previews caused by app-layout containers */
+    html, body {
+        height: auto !important;
+    }
+
+    body {
+        overflow: visible !important;
+    }
+
+    /* Avoid “all black” print output on some Windows print drivers */
+    body, .main-content, .container-fluid,
+    .card, .card-body, .table-responsive {
+        background: #fff !important;
+        color: #000 !important;
+    }
+
     /* Hide navigation and UI elements */
     .sidebar, .top-navbar, .sidebar-toggle,
     .no-print, .btn, .alert,
@@ -360,8 +376,8 @@ body {
         display: none !important;
     }
 
-    /* Hide inline forms but keep structural forms visible */
-    form.d-flex, form.d-inline {
+    /* Hide filter forms but keep structural forms visible */
+    form.d-flex {
         display: none !important;
     }
 
@@ -424,6 +440,9 @@ body {
     /* Layout */
     .main-content {
         margin-left: 0 !important;
+        min-height: auto !important;
+        height: auto !important;
+        overflow: visible !important;
     }
 
     body {
@@ -434,12 +453,14 @@ body {
 
     .container-fluid {
         padding: 0 !important;
+        overflow: visible !important;
     }
 
     /* Cards */
     .card {
         border: none !important;
         box-shadow: none !important;
+        display: block !important;
     }
 
     .card-header {
@@ -462,6 +483,15 @@ body {
         font-size: 10px;
         border-collapse: collapse;
         width: 100%;
+        page-break-after: auto;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tfoot {
+        display: table-footer-group;
     }
 
     .table th {
@@ -470,14 +500,16 @@ body {
         font-size: 9px;
         padding: 4px 6px !important;
         border: 1px solid #ccc !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        -webkit-print-color-adjust: economy;
+        print-color-adjust: economy;
     }
 
     .table td {
         padding: 3px 6px !important;
         border: 1px solid #ddd !important;
         font-size: 10px;
+        background: #fff !important;
+        color: #000 !important;
     }
 
     .table-dark th {
@@ -510,8 +542,8 @@ body {
         background: #f0f0f0 !important;
         font-size: 9px;
         padding: 2px 5px !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        -webkit-print-color-adjust: economy;
+        print-color-adjust: economy;
     }
 
     /* Status badges with preserved meaning */
@@ -568,7 +600,7 @@ body {
     form {
         display: block !important;
     }
-    form.d-flex, form.d-inline {
+    form.d-flex {
         display: none !important;
     }
 
@@ -580,7 +612,7 @@ body {
     /* Page settings */
     @page {
         margin: 15mm 10mm;
-        size: landscape;
+        size: A4 landscape;
     }
 
     /* Prevent page breaks inside rows */
@@ -604,6 +636,7 @@ body {
         justify-content: space-between;
         margin-top: 60px;
         padding-top: 10px;
+        page-break-inside: avoid;
     }
 
     .print-signatures .sig-block {
